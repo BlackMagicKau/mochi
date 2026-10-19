@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import StreamProtocol
 
@@ -192,7 +193,7 @@ struct PortraitStreamScreen: View {
                                              controls: metrics.controlsHeight)
         let half = split.picture
         return ZStack(alignment: .topLeading) {
-            Color.black
+            Palette.background
 
             VStack(spacing: split.controls - half) {
                 picturePane(measured: true).padding(8).frame(height: half)
@@ -331,7 +332,7 @@ struct PortraitStreamScreen: View {
         let rects: [CGRect] = larger ? [layout.pane(video: client.videoSize), layout.row1, layout.keys, layout.trackpad]
                                      : [layout.picture, layout.row1, layout.strip, layout.keys, layout.trackpad]
         return ZStack(alignment: .topLeading) {
-            Color.black
+            Palette.background
 
             // While the drawer is open VoiceOver skips what it dims (a double-tap there would reach
             // the Mac, where a tap only closes the drawer): row 1, then the drawer. The drawer and the
@@ -468,7 +469,7 @@ struct PortraitStreamScreen: View {
         .background(Palette.panel)
         .overlay(alignment: .top) { LinkLineView(text: linkLine) }
         .clipShape(streamShape)
-        .overlay(streamShape.strokeBorder(Color.white.opacity(0.09), lineWidth: 1))
+        .overlay(streamShape.strokeBorder(Palette.border, lineWidth: 1))
         .onGeometryChange(for: CGSize.self, of: { $0.size }, action: { if measured { onPanelSize($0) } })
         .tourTarget(.stream)
     }
@@ -709,7 +710,7 @@ private enum Key {
     case spotlight
 
     #if DEBUG
-    /// What the cap says, for `-SillInputTest` to find it by.
+    /// What the cap says, for `-MochiInputTest` to find it by.
     var title: String? {
         switch self {
         case .press(let title, _, _), .modifier(let title, _, _): return title
@@ -726,7 +727,7 @@ private enum Key {
 /// (`.phone`): escape, tab and the four modifiers, six caps across the row; the Keyboard button is
 /// in row 1, and Spotlight is cmd then space on the keyboard (a latched ⌘ turns a typed space into
 /// ⌘Space). Arrows there come from a hardware keyboard.
-private struct KeyRow: View {
+struct KeyRow: View {
     enum Keys { case full, phone }
 
     let metrics: PortraitMetrics
@@ -884,7 +885,7 @@ private struct KeyRow: View {
     }
 
     #if DEBUG
-    /// DEBUG `-SillInputTest 1` (ContentView's contract), the key row's half: once per launch, taps
+    /// DEBUG `-MochiInputTest 1` (ContentView's contract), the key row's half: once per launch, taps
     /// cmd, esc, shift and ctrl through `tap`, as the caps do, 1.0, 1.4, 1.8 and 2.0 s after the row
     /// shows: ⌘esc goes out and spends the ⌘ latch, and shift and ctrl stay latched for the
     /// trackpad's tap (TrackpadSurface's half).

@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // H3 (step 1): the protocol's new values, compiled with StreamProtocol's sources as one module.
 // HomeDoorTXT (build, parse, an unknown value → required; the dictionary and NWTXTRecord forms);
 // kinds 19, 20 and 22 as docs/home-pairing-plan.md §3.1's examples show them on the wire; the
@@ -25,7 +26,7 @@ check("canonical JSON tells true from 1 and ignores key order", !same(#"{"a":tru
 
 check("the key is p", X.key == "p")
 check("build: 1 with Require pairing on, 0 with it off", X.value(requirePairing: true) == "1" && X.value(requirePairing: false) == "0")
-check("parse: no p is a plain door (Sill.app before this change, SillHost without --pairing)", X.door([:]) == .plain && X.door(["r": "oaKjpKWmL4V47Ctm"]) == .plain)
+check("parse: no p is a plain door (Mochi.app before this change, MochiHost without --pairing)", X.door([:]) == .plain && X.door(["r": "oaKjpKWmhCrOwS6R"]) == .plain)
 check("parse: p=1 requires pairing, p=0 is open", X.door(["r": "t", "p": "1"]) == .pairingRequired && X.door(["r": "t", "p": "0"]) == .open)
 check("parse: any other value reads as 1, the safe side", ["", "2", "yes", "true", "no", "false", " 0", "0 ", "00", "O", "-0", "0x0", "\u{0660}"].allSatisfy { X.door(["p": $0]) == .pairingRequired })
 check("parse: keys are case-insensitive (P)", X.door(["P": "0"]) == .open && X.door(["P": "1"]) == .pairingRequired)
@@ -35,9 +36,9 @@ check("round trip: the value built for each setting reads back as that door",
       X.door([X.key: X.value(requirePairing: true)]) == .pairingRequired && X.door([X.key: X.value(requirePairing: false)]) == .open)
 
 // The record a device receives (NWTXTRecord), entry by entry.
-check("NWTXTRecord: r and p=1", X.door(NWTXTRecord(["r": "oaKjpKWmL4V47Ctm", "p": "1"])) == .pairingRequired)
-check("NWTXTRecord: p=0", X.door(NWTXTRecord(["r": "oaKjpKWmL4V47Ctm", "p": "0"])) == .open)
-check("NWTXTRecord: r alone is plain", X.door(NWTXTRecord(["r": "oaKjpKWmL4V47Ctm"])) == .plain && X.door(NWTXTRecord([String: String]())) == .plain)
+check("NWTXTRecord: r and p=1", X.door(NWTXTRecord(["r": "oaKjpKWmhCrOwS6R", "p": "1"])) == .pairingRequired)
+check("NWTXTRecord: p=0", X.door(NWTXTRecord(["r": "oaKjpKWmhCrOwS6R", "p": "0"])) == .open)
+check("NWTXTRecord: r alone is plain", X.door(NWTXTRecord(["r": "oaKjpKWmhCrOwS6R"])) == .plain && X.door(NWTXTRecord([String: String]())) == .plain)
 var valueless = NWTXTRecord(["r": "x"]); _ = valueless.setEntry(.none, for: "p")
 check("NWTXTRecord: a p without a value (which `dictionary` leaves out) reads as 1, not plain",
       X.door(valueless) == .pairingRequired && valueless.dictionary["p"] == nil)
@@ -56,8 +57,8 @@ let ask = PairRequest(method: PairRequest.ask, proof: "", name: "iPad", model: "
 check("kind 19 ask: " + json(ask), same(json(ask), #"{"v":1,"method":"ask","proof":"","name":"iPad","model":"iPad14,1"}"#))
 let askCable = PairRequest(method: PairRequest.ask, proof: "", name: "iPad", model: "iPad14,1", cable: true)
 check("kind 19 ask on the cable: " + json(askCable), same(json(askCable), #"{"v":1,"method":"ask","proof":"","name":"iPad","model":"iPad14,1","cable":true}"#))
-let qr = PairRequest(method: PairRequest.qr, proof: "AyZAJqNTU5nSKEaHx6RZOf0K5dOeygR_8JSrCV_gNOo", name: "iPad", model: "iPad14,1")
-check("kind 19 qr, as today: " + json(qr), same(json(qr), #"{"v":1,"method":"qr","proof":"AyZAJqNTU5nSKEaHx6RZOf0K5dOeygR_8JSrCV_gNOo","name":"iPad","model":"iPad14,1"}"#))
+let qr = PairRequest(method: PairRequest.qr, proof: "ItIOJ3SALY7S_sbpue0YlyqJGoXMzRuvwJpTeUoIFZc", name: "iPad", model: "iPad14,1")
+check("kind 19 qr, as today: " + json(qr), same(json(qr), #"{"v":1,"method":"qr","proof":"ItIOJ3SALY7S_sbpue0YlyqJGoXMzRuvwJpTeUoIFZc","name":"iPad","model":"iPad14,1"}"#))
 let rk = Base64URL.encode(Data(repeating: 0x11, count: 32))
 let cableOK = PairResult(ok: true, macID: "A3C5HR4RBV67YR21", name: "Mac mini", recognitionKey: rk, method: PairResult.cable)
 check("kind 20 over the cable: " + json(cableOK),

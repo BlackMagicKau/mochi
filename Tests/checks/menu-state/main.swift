@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 // MacMenuState (iOSClient/MacMenuState.swift), docs/menu-bar-plan.md §7.2: its eleven rules case by
 // case, then a random model of a session's events in which every completion must be settled exactly
@@ -81,7 +82,7 @@ do {
     check(!s.receive(top(nil, ["X"]), now: 1).topChanged && s.version == 4 && s.menus.count == 10, "a top level without a version is ignored")
     let none = s.receive(MacMenu(version: 5, menus: []), now: 2)
     check(none.topChanged && !s.hasMenus && s.app == nil && s.menus.isEmpty, "no menus: no button")
-    _ = s.receive(MacMenu(version: 6, app: "Code", menus: [], note: "Allow Accessibility for Sill on the Mac (System Settings › Privacy & Security › Accessibility)."), now: 3)
+    _ = s.receive(MacMenu(version: 6, app: "Code", menus: [], note: "Allow Accessibility for Mochi on the Mac (System Settings › Privacy & Security › Accessibility)."), now: 3)
     check(s.hasMenus && s.menus.isEmpty && s.note?.hasPrefix("Allow Accessibility") == true, "a note alone shows the button")
     check(s.top == S.Top(version: 6, app: "Code", menus: [], stale: false, note: s.note), "the top's snapshot")
 }

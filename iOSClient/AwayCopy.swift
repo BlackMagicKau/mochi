@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 // In the app StreamProtocol is its own module; the away-copy check compiles this file together with
 // Sources/StreamProtocol/HostSettings.swift as one module, where there is nothing to import.
@@ -32,7 +33,7 @@ enum AwayCopy {
     /// The header's line under the route line, while the Mac counts this connection as away:
     /// "Away: Low · Standard" while the away quality runs, "Home quality: Pro · Retina (a device at
     /// home is connected)" while it does not; and what VoiceOver adds to the header for it. Nil at
-    /// home, and from a Mac that sends no `away` (an older one, SillHost without --remote or --pairing).
+    /// home, and from a Mac that sends no `away` (an older one, MochiHost without --remote or --pairing).
     static func headerLine(_ away: AwayQuality?) -> (text: String, spoken: String)? {
         guard let a = away, a.thisConnectionAway else { return nil }
         if a.awayRunning {

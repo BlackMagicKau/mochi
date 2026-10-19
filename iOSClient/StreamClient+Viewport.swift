@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 import ObjectiveC
 import UIKit
@@ -74,9 +75,9 @@ extension StreamClient {
     /// reasons for a 60 fps stream apart with it.
     static func screenMaximumFPS() -> Int {
         #if DEBUG
-        // `-SillScreenFPS 120`: the simulator's 60 Hz screen stands in for a ProMotion one, so the
+        // `-MochiScreenFPS 120`: the simulator's 60 Hz screen stands in for a ProMotion one, so the
         // 60 fps request away from home and its footnote can be checked there (S8).
-        let forced = UserDefaults.standard.integer(forKey: "SillScreenFPS")
+        let forced = UserDefaults.standard.integer(forKey: "MochiScreenFPS")
         if forced > 0 { return forced }
         #endif
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }

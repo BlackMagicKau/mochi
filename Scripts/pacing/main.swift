@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 import Network
 import StreamProtocol
@@ -41,7 +42,7 @@ import StreamProtocol
 //   the same sizes (a window picked, a rotation: the quality kept, so the links keep their
 //   judgement), so its first keyframe goes out while that keyframe may still be crossing the link.
 //   It prints "Restart: …".
-// --log: the host's lines with Sill.log's timestamps (HostLog), which summarize.py reads.
+// --log: the host's lines with Mochi.log's timestamps (HostLog), which summarize.py reads.
 
 setvbuf(stdout, nil, _IOLBF, 0)
 

@@ -1,6 +1,7 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 
-// H3 of docs/update-notice-plan.md (its protocol part): SillVersion and the payloads, against
+// H3 of docs/update-notice-plan.md (its protocol part): MochiVersion and the payloads, against
 // Sources/StreamProtocol compiled into this binary:
 //   swiftc -O Sources/StreamProtocol/*.swift Tests/checks/compatibility/main.swift -o check
 // Given a path, it also writes the payloads that H4 read with an older StreamProtocol (cb0ec55's),
@@ -12,7 +13,7 @@ func check(_ ok: Bool, _ what: @autoclosure () -> String, line: Int = #line) {
     checks += 1
     if !ok { failures += 1; print("FAIL (line \(line)): \(what())") }
 }
-func v(_ s: String) -> SillVersion? { SillVersion(s) }
+func v(_ s: String) -> MochiVersion? { MochiVersion(s) }
 
 // §3.2's examples.
 check(v("v0.4.0")?.components == [0, 4], "v0.4.0")
@@ -58,16 +59,16 @@ check(v("1.0.0.1")! > v("1")!, "1.0.0.1 > 1")
 check(!(v("1.2")! < v("1.2")!), "irreflexive")
 check(v("v0.4.0")! > v("0.3.0")!, "tag with v against a bundle version")
 check(v("0.4.0")! > v("v0.3.0")!, "bundle with v")
-check(SillVersion.zero < v("0.0.1")!, "0 < 0.0.1")
+check(MochiVersion.zero < v("0.0.1")!, "0 < 0.0.1")
 // Showing.
 check(v("0.4.0")!.description == "0.4", "0.4.0 shows 0.4")
 check(v("1")!.description == "1.0", "1 shows 1.0")
 check(v("1.0.1")!.description == "1.0.1", "1.0.1 shows 1.0.1")
-check(SillVersion.zero.description == "0.0", "0 shows 0.0")
+check(MochiVersion.zero.description == "0.0", "0 shows 0.0")
 check(v("99")!.description == "99.0", "99 shows 99.0")
 check(v("1.2.0.0")!.description == "1.2", "1.2.0.0 shows 1.2")
 check(v("0.0.5")!.description == "0.0.5", "0.0.5 shows 0.0.5")
-check(SillVersion(components: [1, 0, 0]).components == [1], "trailing zeros dropped")
+check(MochiVersion(components: [1, 0, 0]).components == [1], "trailing zeros dropped")
 check(v("1.2")!.hashValue == v("1.2.0")!.hashValue, "equal versions hash alike")
 
 // 1,000 random pairs against a reference: padded lexicographic comparison of the generated parts,
@@ -119,9 +120,9 @@ for reason in [Goodbye.quit, Goodbye.removed, Goodbye.remoteOff, Goodbye.interne
     let bytes = String(decoding: Wire.encode(Goodbye(reason: reason)), as: UTF8.self)
     check(bytes == "{\"reason\":\"\(reason)\"}", "goodbye \(reason): \(bytes)")
 }
-let update = Goodbye(reason: Goodbye.update, message: "Update Sill on your iPad to keep using Mac mini. It needs version 1.2 or later.",
+let update = Goodbye(reason: Goodbye.update, message: "Update Mochi on your iPad to keep using Mac mini. It needs version 1.2 or later.",
                      minimumVersion: "1.2", reconnect: false)
-check(json(update) == #"{"message":"Update Sill on your iPad to keep using Mac mini. It needs version 1.2 or later.","minimumVersion":"1.2","reason":"update","reconnect":false}"#,
+check(json(update) == #"{"message":"Update Mochi on your iPad to keep using Mac mini. It needs version 1.2 or later.","minimumVersion":"1.2","reason":"update","reconnect":false}"#,
       "the update goodbye: \(json(update))")
 check(Wire.decode(Goodbye.self, from: Data(#"{"reason":"quit"}"#.utf8)) == Goodbye(reason: "quit"), "an old goodbye reads with nil fields")
 check(Wire.decode(Goodbye.self, from: Data(#"{"message":"x"}"#.utf8)) == nil, "no reason: no goodbye")
@@ -131,7 +132,7 @@ let later = #"{"reason":"pairAgain","message":"Pair this iPad with Mac mini agai
 check(Wire.decode(Goodbye.self, from: Data(later.utf8))?.reason == "pairAgain", "a later reason decodes")
 check(Goodbye.pairingRequired == "pairingRequired" && Goodbye.update == "update", "pairing at home's reason and the update notice's, as their devices read them")
 // The window list with and without the new keys.
-let list = WindowList(macName: "Mac mini", windows: [], active: .desktop, launchID: "L", hostVersion: "0.4.0", protocol: SillProtocol.current)
+let list = WindowList(macName: "Mac mini", windows: [], active: .desktop, launchID: "L", hostVersion: "0.4.0", protocol: MochiProtocol.current)
 let listJSON = json(list)
 check(listJSON.contains(#""hostVersion":"0.4.0""#) && listJSON.contains(#""protocol":1"#), "the list carries both keys: \(listJSON)")
 let bare = json(WindowList(macName: "Mac mini", windows: [], active: .none, launchID: "L"))
@@ -142,7 +143,7 @@ check(decodedOld != nil && decodedOld?.hostVersion == nil && decodedOld?.protoco
 check(StreamMessageKind.hello.rawValue == 23 && StreamMessageKind(rawValue: 23) == .hello, "kind 23 is hello")
 let helloMessage = StreamMessage(kind: .hello, timestamp: 1, isKeyframe: false, payload: Wire.encode(hello)).serialized()
 check(StreamMessage.parseHeader(helloMessage)?.kind == .hello, "the hello's header parses")
-check(SillProtocol.current == 1, "protocol 1")
+check(MochiProtocol.current == 1, "protocol 1")
 
 // Kind 28, the trackpad gesture (docs/trackpad-gestures-plan.md §4), and the window list's
 // `gestures`: additive both ways.

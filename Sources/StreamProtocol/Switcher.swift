@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 
 /// What the host streams. The client decides; the host only ever streams one source.
@@ -41,11 +42,11 @@ public struct WindowList: Codable {
     /// device moving its session from AWDL to the network must not land on another Mac. Optional:
     /// nil from a host older than 2026-09-24, and an older device ignores the key.
     public var launchID: String?
-    /// The host's version: Sill.app's CFBundleShortVersionString ("0.4.0"); nil from SillHost (no
+    /// The host's version: Mochi.app's CFBundleShortVersionString ("0.4.0"); nil from MochiHost (no
     /// bundle) and from hosts before 2026-09-25. For later devices: which Mac to update, and to what
     /// (docs/update-notice-plan.md §14).
     public var hostVersion: String?
-    /// The host's SillProtocol.current; nil from hosts before 2026-09-25, which speak 1. The JSON key
+    /// The host's MochiProtocol.current; nil from hosts before 2026-09-25, which speak 1. The JSON key
     /// is "protocol".
     public var `protocol`: Int?
     /// Which trackpad gestures this host takes (kind 28, Gesture.swift): 1 is the six of

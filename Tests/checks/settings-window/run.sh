@@ -1,6 +1,6 @@
 #!/bin/bash
-# SettingsWindowFit (Sources/SillMenuBar), how tall Sill's Settings window may be on a screen and
-# where it goes when Sill changes its size (issue #59, docs/settings-window-plan.md): the cases the
+# SettingsWindowFit (Sources/MochiMenuBar), how tall Mochi's Settings window may be on a screen and
+# where it goes when Mochi changes its size (issue #59, docs/settings-window-plan.md): the cases the
 # issue raises, then seeded random screens, chromes and frames. Compiled on its own with swiftc
 # (CoreGraphics only).
 #   Tests/checks/settings-window/run.sh             compile and run the check

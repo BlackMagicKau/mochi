@@ -1,21 +1,37 @@
+// Modified for Mochi: matcha theme and independent app branding.
 import SwiftUI
 import Network
 import StreamProtocol
 
+/// A1, the selected matcha dumpling. Decorative artwork adds no VoiceOver stop.
+struct MochiMascot: View {
+    var body: some View {
+        Image("MochiCharacter")
+            .resizable()
+            .interpolation(.high)
+            .scaledToFit()
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+    }
+}
+
 struct ContentView: View {
     @StateObject private var client = StreamClient()
     /// Tells the host what this device sees, once a second while connected. Also covers the DEBUG
-    /// harness's `-SillLive 1` session, which runs on this same client.
+    /// harness's `-MochiLive 1` session, which runs on this same client.
     @StateObject private var statsReporter = ClientStatsReporter()
 
     var body: some View {
-        root.onAppear { statsReporter.attach(to: client) }
+        root
+            .tint(Palette.accent)
+            .onAppear { statsReporter.attach(to: client) }
     }
 
     @ViewBuilder private var root: some View {
         #if DEBUG
         if let spec = LayoutHarness.Spec.fromLaunchArguments {
-            // The harness gets the app's own client so `-SillLive 1` can put a real session inside
+            // The harness gets the app's own client so `-MochiLive 1` can put a real session inside
             // the fake screen; without that argument it never touches it.
             LayoutHarness(spec: spec, live: client)
         } else {
@@ -28,38 +44,38 @@ struct ContentView: View {
 
     private var app: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Palette.background.ignoresSafeArea()
             if client.connected {
                 StreamScreen(client: client)
             } else {
                 ConnectScreen(client: client)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         // Tells MacMenuHub which window shows this session: the iPad's menu bar shows its menus while
         // it is the app's one window.
         .background(WindowSessionObserver(client: client))
         .onAppear {
             #if DEBUG
-            SecondWindow.openFromLaunchArgument()   // -SillSecondWindow 1
+            SecondWindow.openFromLaunchArgument()   // -MochiSecondWindow 1
             #endif
             client.startBrowsing()
             client.startRemote()                 // saved Macs without a key are cleared; DEBUG pairing arguments
             #if DEBUG
-            client.connectFromLaunchArgument()   // -SillConnect host:port, for the off-Bonjour test hosts
-            Self.orientFromLaunchArgument()      // -SillOrientation landscape|portrait
+            client.connectFromLaunchArgument()   // -MochiConnect host:port, for the off-Bonjour test hosts
+            Self.orientFromLaunchArgument()      // -MochiOrientation landscape|portrait
             #endif
         }
-        // sill://pair from the Camera, Messages or `xcrun simctl openurl`: a confirmation first.
+        // mochi://pair from the Camera, Messages or `xcrun simctl openurl`: a confirmation first.
         .onOpenURL { client.handleOpenURL($0) }
     }
 
     #if DEBUG
-    /// `-SillOrientation landscape|portrait`: the normal app asks its window scene for that
+    /// `-MochiOrientation landscape|portrait`: the normal app asks its window scene for that
     /// orientation at launch, so a phone simulator shows the real layout sideways, its safe areas
     /// included, with no hand on the simulator (the harness's fake screen has no insets).
     private static func orientFromLaunchArgument() {
-        guard let raw = UserDefaults.standard.string(forKey: "SillOrientation") else { return }
+        guard let raw = UserDefaults.standard.string(forKey: "MochiOrientation") else { return }
         let mask: UIInterfaceOrientationMask = raw == "portrait" ? .portrait : .landscapeRight
         for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
             scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { error in
@@ -81,48 +97,48 @@ struct ContentView: View {
 ///
 /// Only a launch argument turns it on. The whole contract:
 ///
-/// * `-SillLayout 1000x710` — required; the fake screen's size in points. At the Duo's four sizes
-///   (951x669, 669x951, 466x678, 678x466) the fake screen has the safe area that display gives Sill
+/// * `-MochiLayout 1000x710` — required; the fake screen's size in points. At the Duo's four sizes
+///   (951x669, 669x951, 466x678, 678x466) the fake screen has the safe area that display gives Mochi
 ///   (DuoPosture.displayInsets: the home indicator's 34 at the bottom; on the inner display the
 ///   status bar's strip, 84 pt at the right sideways and 82 at the top upright, but on the stream
-///   screen upright with `-SillHinge half` or `flat`, which hides it; on the cover the camera's
+///   screen upright with `-MochiHinge half` or `flat`, which hides it; on the cover the camera's
 ///   84 pt strip, at the right upright and the left on its side); every other size has none, as
-///   before. `-SillSafeArea T,L,B,R` sets it (`none` for none).
-/// * `-SillHinge closed|half|flat` — stands in for the Duo's hinge (iOS 27.1's `onHingeChange`) and
+///   before. `-MochiSafeArea T,L,B,R` sets it (`none` for none).
+/// * `-MochiHinge closed|half|flat` — stands in for the Duo's hinge (iOS 27.1's `onHingeChange`) and
 ///   its fold (the `.division` reserved region): `half` the fold in the way, 40 pt across the middle
 ///   of the fake screen's longer side (the book pose sideways, the laptop pose upright); `flat` the
 ///   same fold, open flat; `closed` none, as on the cover. Without it the harness knows no hinge,
 ///   on the Duo's simulator too, and every layout is what the size alone gives, as before.
-/// * `-SillDrawer 1` — start with the app drawer open. This, `-SillScaleOpen 1` and `-SillSettings 1`
-///   also work in a live session (the normal app with `-SillConnect`, and `-SillLive 1`), where each
+/// * `-MochiDrawer 1` — start with the app drawer open. This, `-MochiScaleOpen 1` and `-MochiSettings 1`
+///   also work in a live session (the normal app with `-MochiConnect`, and `-MochiLive 1`), where each
 ///   opens 1.5 s after the stream screen shows, once the Desktop has started (StreamScreen).
-///   `-SillDrawerSearch <text>`: the open drawer searches for that text with the keyboard up for its
+///   `-MochiDrawerSearch <text>`: the open drawer searches for that text with the keyboard up for its
 ///   field (in a live session the real keyboard), so a photo shows what the keyboard leaves in view.
-/// * `-SillScaleOpen 1` — start with the Aa slider unfolded (as while a finger holds it);
-///   `-SillScale 1.5` sets the scale it opens at.
-/// * `-SillWindowMenu 1` — open the first thumbnail's traffic lights and keep them open.
-/// * `-SillKeyboard 1` — start with the software keyboard shown: in the mock only the Keyboard
-///   button lights (a real keyboard upsets the fake screen); under `-SillLive 1` and in the normal
-///   app (with `-SillConnect`) the input view takes first responder half a second after the stream
+/// * `-MochiScaleOpen 1` — start with the Aa slider unfolded (as while a finger holds it);
+///   `-MochiScale 1.5` sets the scale it opens at.
+/// * `-MochiWindowMenu 1` — open the first thumbnail's traffic lights and keep them open.
+/// * `-MochiKeyboard 1` — start with the software keyboard shown: in the mock only the Keyboard
+///   button lights (a real keyboard upsets the fake screen); under `-MochiLive 1` and in the normal
+///   app (with `-MochiConnect`) the input view takes first responder half a second after the stream
 ///   screen shows, so the keyboard really comes up. A simulator shows it only while UIKit there
 ///   counts no hardware keyboard: a fresh one (Tests/keyrig's keys make it count one for good).
-/// * `-SillKeyboardToggle <s>[,<s>…]` — at each of these seconds after the stream screen shows, the
+/// * `-MochiKeyboardToggle <s>[,<s>…]` — at each of these seconds after the stream screen shows, the
 ///   keyboard toggles as the Keyboard button does (the Settings panel put away, then the input
 ///   view's first responder toggled): a stand-in for a tap, since no gate drives the UI. In the
 ///   normal app too, and in the mock (where a real keyboard then upsets the fake screen).
-/// * `-SillHardwareKeyboard 1|0` — a hardware keyboard is attached, or not, for this run, whatever
+/// * `-MochiHardwareKeyboard 1|0` — a hardware keyboard is attached, or not, for this run, whatever
 ///   GameController says (HardwareKeyboardMonitor; docs/hardware-keyboard-plan.md). A simulator's
 ///   GameController always counts the simulator's own keyboard, so without it the stream's input view
 ///   takes the keyboard by itself there (an empty input view: nothing drawn). The console says
 ///   "keyboard: …" for what the rule does, and "hwkey: usage 41 down via pressesBegan: to the Mac"
 ///   (or `keyCommand`) for every hardware key the input view sees.
-/// * `-SillKeyProbe 1` — GameController's keyboard handler prints every key it sees as well
+/// * `-MochiKeyProbe 1` — GameController's keyboard handler prints every key it sees as well
 ///   ("hwkey: usage 41 down via GameController"), beside UIKit's channels.
-/// * `-SillEscViaCommand 1` — the input view hands a hardware Esc on from pressesBegan, as a device
+/// * `-MochiEscViaCommand 1` — the input view hands a hardware Esc on from pressesBegan, as a device
 ///   that keeps it from there would, so its Esc key commands take it (UIKit's own dispatch).
-/// * `-SillTurnAt <s>[,<s>…]` — at each of these seconds after the stream screen shows, the scene is
+/// * `-MochiTurnAt <s>[,<s>…]` — at each of these seconds after the stream screen shows, the scene is
 ///   asked for the other orientation, a turn mid-session (an iPhone's; iPadOS's windowing refuses).
-/// * `-SillInputTest 1` — with `-SillConnect` on this Mac's loopback (127.0.0.1, ::1, [::1] or
+/// * `-MochiInputTest 1` — with `-MochiConnect` on this Mac's loopback (127.0.0.1, ::1, [::1] or
 ///   localhost), once per launch, in the portrait key row's and trackpad's own code: the key row
 ///   taps cmd, esc, shift and ctrl through its caps' action 1.0, 1.4, 1.8 and 2.0 s after it shows
 ///   (⌘esc goes out; shift and ctrl stay latched), then the trackpad checks that a touch at its
@@ -132,44 +148,44 @@ struct ContentView: View {
 ///   the keyboard), a trackpad's two-finger scroll of 40 pt down with its coast (5 s) and a wheel's
 ///   30 pt up (7.2 s). Each event goes out as the
 ///   controls send it, and the console says what ran ("input test: …"). A synthetic host counts
-///   what it gets as `in.dry` and posts nothing; a real host (Sill.app, SillHost without
+///   what it gets as `in.dry` and posts nothing; a real host (Mochi.app, MochiHost without
 ///   `--synthetic`) posts it on this Mac, and the test does not check which it reached: point it
 ///   only at a synthetic host, or put a relay that drops kind 8 (input) in front of the host.
-/// * `-SillActive none` — start with nothing streaming (also `desktop`, or a window ID like `104`).
+/// * `-MochiActive none` — start with nothing streaming (also `desktop`, or a window ID like `104`).
 ///   The mock otherwise starts on Code's window, as the boards draw it.
-/// * `-SillIdiom pad` — draw a screen taller than wide and narrower than 600 pt as an iPad draws
+/// * `-MochiIdiom pad` — draw a screen taller than wide and narrower than 600 pt as an iPad draws
 ///   such a window (the compact halves), not as a phone does (`DuoLayout.phoneArrangement`), so an
 ///   iPhone simulator can photograph it; `phone` the other way round. Also in the normal app.
-/// * `-SillLive 1` — host the app's *real* `StreamClient` in the frame instead of the mock, so the
+/// * `-MochiLive 1` — host the app's *real* `StreamClient` in the frame instead of the mock, so the
 ///   simulator can connect to a Mac over Bonjour at a Duo size. Not connected yet shows the normal
 ///   connect screen inside the frame. Without it nothing touches the network, exactly as before.
-/// * `-SillHUD 1` — not a harness argument, but it combines with these: the fps / frame age / RTT
+/// * `-MochiHUD 1` — not a harness argument, but it combines with these: the fps / frame age / RTT
 ///   readout on the display view (see `DiagnosticsHUDView`). It works with or without the harness.
-/// * `-SillConnect 127.0.0.1:PORT` — connect straight to that address, in the normal app and under
-///   `-SillLive 1`. The synthetic test hosts (`SillHost --synthetic`, the bare `SillMenuBar
+/// * `-MochiConnect 127.0.0.1:PORT` — connect straight to that address, in the normal app and under
+///   `-MochiLive 1`. The synthetic test hosts (`MochiHost --synthetic`, the bare `MochiMenuBar
 ///   --synthetic`) stay off Bonjour, so this is how the simulator reaches them.
-/// * `-SillMoveTest 1` — with `-SillConnect`: that session counts as a direct (AWDL) one, and a
+/// * `-MochiMoveTest 1` — with `-MochiConnect`: that session counts as a direct (AWDL) one, and a
 ///   second later the same address is listed as the Mac's network row, so the move to the network
 ///   runs for real (a second connection shows the same host in its first window list and takes the
 ///   session over once the fence is down; the host logs a second "Client connected" and the first
 ///   "Client left", and streams on). `refused` lists port 1 instead: each try is given up after
 ///   5 s and the session stays direct. `other:PORT` lists that port of the same address under the
 ///   same name: another synthetic host there is refused at its first window list (another launch)
-///   and not tried again while it stays listed; the first host's own port, with `-SillConnect`
+///   and not tried again while it stays listed; the first host's own port, with `-MochiConnect`
 ///   going through a proxy that delays each direction, moves once the fence has waited out the
 ///   proxy's round trip. `to:HOST:PORT` lists that address under the same name, read as
-///   `-SillConnect`'s is (`to:[::1]:P` works too): the same host reached another way, so the
+///   `-MochiConnect`'s is (`to:[::1]:P` works too): the same host reached another way, so the
 ///   Settings panel's route word changes at the hand-over (from `127.0.0.1`, none, to this Mac's
 ///   `fe80::…%en0`, "Wi-Fi"). The console says what happened
 ///   ("discovery: …", "move to the network …", "session: …" for the route;
 ///   `xcrun simctl launch --console-pty`).
-/// * `-SillWiredTest HOST:PORT` — a "Wired" row's dial goes to the cable first and falls back to
-///   the row as listed; this puts that fallback under test. `-SillConnect`'s dial, any network
-///   row's (each counts as Wired) and a move's under `-SillMoveTest` go to HOST:PORT first, with
+/// * `-MochiWiredTest HOST:PORT` — a "Wired" row's dial goes to the cable first and falls back to
+///   the row as listed; this puts that fallback under test. `-MochiConnect`'s dial, any network
+///   row's (each counts as Wired) and a move's under `-MochiMoveTest` go to HOST:PORT first, with
 ///   the address they would have dialled as the fallback: `192.0.2.1:9` (never answers) gives way
 ///   after 2.5 s, `127.0.0.1:1` (nothing listens) at once, and the session comes up on the
 ///   address as before ("wired dial … dialing unconstrained" on the console).
-/// * `-SillPathTest '<spec>'` — with `-SillConnect`: the session's Mac is listed as a network row
+/// * `-MochiPathTest '<spec>'` — with `-MochiConnect`: the session's Mac is listed as a network row
 ///   whose interfaces change on cue, so the session follows the best path for real
 ///   (`StreamClient.followBestPath`). The spec: `wifi=HOST:PORT cable=HOST:PORT` (where a dial to
 ///   the row's Wi-Fi and to its cable goes), then events `SECONDS:WHAT` from the first `.ready`:
@@ -181,17 +197,17 @@ struct ContentView: View {
 ///   is another synthetic host fails each move to the cable (tried less often each time, and
 ///   another host's listing not again). `direct` counts the session as one over AWDL, so the row
 ///   is where the move from AWDL takes it. With the iPad on this Mac's cable, this Mac's own
-///   `fe80::…%en14` reads "Wired" and `fe80::…%en0` "Wi-Fi": `-SillConnect fe80::…%en0:PORT
-///   -SillPathTest 'wifi=fe80::…%en0:PORT cable=fe80::…%en14:PORT 3:+cable'` moves the session to
+///   `fe80::…%en14` reads "Wired" and `fe80::…%en0` "Wi-Fi": `-MochiConnect fe80::…%en0:PORT
+///   -MochiPathTest 'wifi=fe80::…%en0:PORT cable=fe80::…%en14:PORT 3:+cable'` moves the session to
 ///   the cable 2 s after the cable is listed, and the host logs "Client connected: …%en14" and
 ///   "Client left: …%en0". The console says what happened ("path: …").
-/// * `-SillSettings 1` — start with the Settings panel open (a real Mac's state under `-SillLive 1`).
-/// * `-SillSettingsEnd 1` — with `-SillSettings 1`: the panel's rows start scrolled to their end,
+/// * `-MochiSettings 1` — start with the Settings panel open (a real Mac's state under `-MochiLive 1`).
+/// * `-MochiSettingsEnd 1` — with `-MochiSettings 1`: the panel's rows start scrolled to their end,
 ///   so a photo of a short screen shows the last groups (Direct Wireless, Away from home, This
-///   iPad, Take the Tour). `-SillSettingsScroll gestures` starts them at the This iPad group
+///   iPad, Take the Tour). `-MochiSettingsScroll gestures` starts them at the This iPad group
 ///   instead (its switch and rows, which the footnotes under them push out of the end's view on a
 ///   short screen).
-/// * `-SillSettingsCase <case>` — what the mock Mac's settings look like: `default` (Sill.app),
+/// * `-MochiSettingsCase <case>` — what the mock Mac's settings look like: `default` (Mochi.app),
 ///   `cli`, `software`, `custom`, `vdproblem`, `vdstream`, `legacy`, `pending`, `timeout`,
 ///   `direct`, `directlink` (connected over it), `nodirect` (a host without it), `wired` or
 ///   `noroute`; and for the Away from home group, away from home: `remote` (through Tailscale,
@@ -209,46 +225,46 @@ struct ContentView: View {
 ///   (Wired), `noroute` (none, as a connection whose path says nothing), and `remote`,
 ///   `remoteinternet`, `remoteslow` and the away and link cases but `awayhome` (none: the route line
 ///   under it says how instead).
-/// * `-SillLinkLine behind` — the mock Mac reports this connection's link behind, whatever the
+/// * `-MochiLinkLine behind` — the mock Mac reports this connection's link behind, whatever the
 ///   settings case: the stream screen's line shows (the panel closed; with it open, the callout).
-/// * `-Sill.trackpadGestures 0` — not a harness argument either: this device's switch for
+/// * `-Mochi.trackpadGestures 0` — not a harness argument either: this device's switch for
 ///   three-finger gestures (the Settings panel's last group, This iPad) off for one run, in the
 ///   normal app too. The mock Mac takes gestures (`WindowList.gestures` 1) in every settings case
-///   but `legacy`, whose group then says to update Sill on the Mac.
-/// * `-Sill.shareClipboard 0` — not a harness argument either: this device's Share Clipboard (the
+///   but `legacy`, whose group then says to update Mochi on the Mac.
+/// * `-Mochi.shareClipboard 0` — not a harness argument either: this device's Share Clipboard (the
 ///   Settings panel's This iPad group) off for one run, in the normal app too. The mock Mac shares its
 ///   clipboard (`WindowList.clipboard` 1) in every settings case but `legacy`, whose group then has no
-///   clipboard rows. `-SillClipboardChip 1` offers the clipboard's chip over the mock's stream (as
-///   after a copy on this device; it stays), and `-SillClipboardNote sent|long|notsent` shows a Paste's
+///   clipboard rows. `-MochiClipboardChip 1` offers the clipboard's chip over the mock's stream (as
+///   after a copy on this device; it stays), and `-MochiClipboardNote sent|long|notsent` shows a Paste's
 ///   note in its place and under the group's Paste (docs/clipboard-plan.md).
-/// * `-Sill.largerPicture 1` — not a harness argument either: this device's Larger Picture switch
+/// * `-Mochi.largerPicture 1` — not a harness argument either: this device's Larger Picture switch
 ///   (the Settings panel's This iPhone group; docs/larger-picture-plan.md) on for one run, in the
 ///   normal app too. A phone held upright then has, while a window streams, no thumbnails, the
 ///   picture's room down to the keyboard's estimated top less the rows (PhonePortraitLayout), and the
-///   Menus button in row 1; with the Desktop or nothing streaming (`-SillActive desktop|none` in the
+///   Menus button in row 1; with the Desktop or nothing streaming (`-MochiActive desktop|none` in the
 ///   mock, whose default is a window) the usual arrangement, and the console's `larger picture: the
 ///   switch on, the Desktop streams: the standard arrangement` says so.
-///   `-SillVideoSize 848x844` gives the mock's frame another shape (2800x1800 otherwise), so the
+///   `-MochiVideoSize 848x844` gives the mock's frame another shape (2800x1800 otherwise), so the
 ///   pane at the top of that room can be drawn as a window the Mac fitted to it, or a taller one.
-///   `-SillLargerPictureToggle <s>[,<s>…]` switches it at those seconds after the stream screen
-///   shows, as the Settings panel's switch does (saved; leave out `-Sill.largerPicture`, which would
+///   `-MochiLargerPictureToggle <s>[,<s>…]` switches it at those seconds after the stream screen
+///   shows, as the Settings panel's switch does (saved; leave out `-Mochi.largerPicture`, which would
 ///   hold it), so a live run shows the one new viewport each switch sends.
-/// * `-SillAXDump <s>` — `s` seconds after the stream screen shows, the console lists its
+/// * `-MochiAXDump <s>` — `s` seconds after the stream screen shows, the console lists its
 ///   accessibility elements in the order the accessibility tree hands them to VoiceOver ("ax: 1
 ///   Open the app list (33,463 55×50)"). SwiftUI builds that tree only for an assistive technology:
 ///   on a private simulator, `xcrun simctl spawn UDID defaults write com.apple.Accessibility
 ///   ApplicationAccessibilityEnabled -bool true` first. In the mock and the normal app.
-/// * `-SillVoiceOver 1` — the Settings panel acts as if VoiceOver were on: the This iPad group's
+/// * `-MochiVoiceOver 1` — the Settings panel acts as if VoiceOver were on: the This iPad group's
 ///   footnote says VoiceOver keeps three fingers and its rows do the gestures instead (they are
 ///   accessibility actions whether or not it is on).
-/// * `-SillScanOverlay 1` — the stream screen under Pair This iPad…'s overlay (a drawn viewfinder).
-///   `-SillOverlayLine asking|shown|openonmac|locked|noanswer`: the line under its title over a
+/// * `-MochiScanOverlay 1` — the stream screen under Pair This iPad…'s overlay (a drawn viewfinder).
+///   `-MochiOverlayLine asking|shown|openonmac|locked|noanswer`: the line under its title over a
 ///   session at home that speaks TLS, as the Mac's answer to the overlay's ask sets it
-///   (DiscoveryPolicy.overlayLine; the mock never asks). Under `-SillLive 1` the overlay opens over
+///   (DiscoveryPolicy.overlayLine; the mock never asks). Under `-MochiLive 1` the overlay opens over
 ///   the live session as soon as it connects, and asks its Mac as Pair This iPad… does.
-/// * `-SillNoAutoDesktop 1` — (also in the normal app) the device never picks the Desktop by
+/// * `-MochiNoAutoDesktop 1` — (also in the normal app) the device never picks the Desktop by
 ///   itself: a live gate's session streams nothing, so no host encodes while it runs.
-/// * `-SillMacMenu <case>` — the mock Mac's menus (docs/menu-bar-plan.md §7.8; see
+/// * `-MochiMacMenu <case>` — the mock Mac's menus (docs/menu-bar-plan.md §7.8; see
 ///   `MockCatalog.MenuCase`): `code` (the default: VS Code's ten, File with shortcuts, sections, a ✓,
 ///   a disabled item and Open Recent ▸, Code › Settings ▸ Themes ▸ three deep, View › Appearance
 ///   with a mixed mark), `blender` (Blender and Window), `long` (a Window menu of 300 windows, and a
@@ -257,136 +273,136 @@ struct ContentView: View {
 ///   `slow` (each menu answered after 1.5 s, UIKit's placeholder meanwhile), `timeout` (never
 ///   answered: "Mac mini didn’t answer. Open the menu again." after 4 s) or `refuse` (every choice
 ///   refused). The mock answers a menu and a choice 0.2 s after it is asked. Ignored with
-///   `-SillLive 1`, whose session has the Mac's own menus.
-/// * `-SillMenusOpen 1` — the Menus button's pull-down opens after launch, as a tap opens it
-///   (`performPrimaryAction`, iOS 17.4); `-SillMenusOpen 'File'` or `'Code/Settings'` opens it on
+///   `-MochiLive 1`, whose session has the Mac's own menus.
+/// * `-MochiMenusOpen 1` — the Menus button's pull-down opens after launch, as a tap opens it
+///   (`performPrimaryAction`, iOS 17.4); `-MochiMenusOpen 'File'` or `'Code/Settings'` opens it on
 ///   that menu's own items instead, each level fetched on the way as a tap on it would fetch it;
-///   `-SillMenusAt <s>` opens it `s` seconds after the button shows (not 0.8), and
-///   `-SillMenusCloseAfter <s>` dismisses it `s` seconds later, as a tap outside it would.
-///   `-SillMenuPress 'File/Save'` chooses that item once the first top level is in, as a tap would
+///   `-MochiMenusAt <s>` opens it `s` seconds after the button shows (not 0.8), and
+///   `-MochiMenusCloseAfter <s>` dismisses it `s` seconds later, as a tap outside it would.
+///   `-MochiMenuPress 'File/Save'` chooses that item once the first top level is in, as a tap would
 ///   (the menus on the way fetched, the kind 25 sent). Both run once per launch, in the normal app
-///   and under `-SillLive 1` too, but only on the mock's menus or the test app's: against a
-///   synthetic host started with SILL_TEST_MENU_PID, dialled by `-SillConnect` to a loopback
+///   and under `-MochiLive 1` too, but only on the mock's menus or the test app's: against a
+///   synthetic host started with MOCHI_TEST_MENU_PID, dialled by `-MochiConnect` to a loopback
 ///   address, whose window list gives no version and whose top level is menufixture's
-///   (`-SillMenuPress 'Probe/Set Label A'`; `StreamClient.menuHarnessRefusal`). Against anything
+///   (`-MochiMenuPress 'Probe/Set Label A'`; `StreamClient.menuHarnessRefusal`). Against anything
 ///   else they print "refused" and open and choose nothing: on a real Mac a choice would be made in
 ///   whatever app it streams. A headless run cannot tap; these stand in for the taps.
-/// * The iPad's menu bar (iPadOS 26), in the normal app too: `-SillMenuBarLayout perMenu|replace|one`
-///   (where the Mac's menus go, the plan's Q1, for one run), `-SillMenuDump 1` (the main menu's
-///   root after each build, on the console), `-SillMenuBuildTwice 1` (the insertion made twice in
-///   one build: the second inserts nothing), `-SillMenuNoView 1` (View removed before the
-///   insertion) and `-SillSecondWindow 1` (a second window opens 2 s after launch: with two, the bar
+/// * The iPad's menu bar (iPadOS 26), in the normal app too: `-MochiMenuBarLayout perMenu|replace|one`
+///   (where the Mac's menus go, the plan's Q1, for one run), `-MochiMenuDump 1` (the main menu's
+///   root after each build, on the console), `-MochiMenuBuildTwice 1` (the insertion made twice in
+///   one build: the second inserts nothing), `-MochiMenuNoView 1` (View removed before the
+///   insertion) and `-MochiSecondWindow 1` (a second window opens 2 s after launch: with two, the bar
 ///   gets none of the Mac's menus). The console's "menus: …" and "menubar: …" lines say what
 ///   happened.
-/// * `-SillPointer <state>` — the pointer sprite in one of docs/pointer-visibility-plan.md's states,
+/// * `-MochiPointer <state>` — the pointer sprite in one of docs/pointer-visibility-plan.md's states,
 ///   over the mock's 2800×1800 frame, drawn as a dim rectangle so a photo shows where the frame is
 ///   (the mock never streams): `mac@0.40,0.30` (the Mac has the pointer, over the stream: its arrow
 ///   in every layout), `device@0.62,0.55` (this device's trackpad: its arrow in portrait only),
 ///   `hidden` (the Mac has it, off the stream: none) or `pencil@0.50,0.50` (this device's Pencil:
-///   none, unless `-SillPencilPointer 1`, Q2's flip, draws it in every layout). Ignored with
-///   `-SillLive 1`, whose session shows the real thing.
-/// * `-SillInputScript '<t> <step>; …'` — with `-SillLive 1` only: input for the simulator gates,
+///   none, unless `-MochiPencilPointer 1`, Q2's flip, draws it in every layout). Ignored with
+///   `-MochiLive 1`, whose session shows the real thing.
+/// * `-MochiInputScript '<t> <step>; …'` — with `-MochiLive 1` only: input for the simulator gates,
 ///   which have no finger (`InputScript`): `t` is seconds since the session's first window list, and
 ///   a step is `down`, `pad DX,DY`, `lift` or `click` on the portrait pad, `tap X,Y` on the stream
 ///   (a frame fraction), `key USAGE` (a hardware key) or `row USAGE` (a key of the portrait key
 ///   row), `esc [MODS]`, `scroll DX,DY`, `wheel DX,DY`, `keyboard attach|detach` or `orient
 ///   landscape|portrait` (InputScript has them all). The console says "input script: …" at each.
-///   It runs only when the session was dialled by `-SillConnect` to a loopback address and the
+///   It runs only when the session was dialled by `-MochiConnect` to a loopback address and the
 ///   host's first window list has no version
-///   (Sill.app's always has, and would post the input to this Mac): else "input script: refused:
+///   (Mochi.app's always has, and would post the input to this Mac): else "input script: refused:
 ///   …" and nothing is sent. Point it only at `--synthetic` hosts.
-/// * `-SillSettingsScript '<t> <step>; …'` — the Settings panel's controls for the simulator gates,
+/// * `-MochiSettingsScript '<t> <step>; …'` — the Settings panel's controls for the simulator gates,
 ///   in the normal app too: `set K=V[,K=V]` (a control's change), `suggestion` (the link
 ///   callout's button) or `paste TEXT` (the clipboard's Paste with TEXT, as the system's Paste control
-///   hands it over), `t` seconds after the session's first window list, under `-SillInputScript`'s
-///   guard (a session dialled to a loopback address whose host sends no version: never Sill.app).
+///   hands it over), `t` seconds after the session's first window list, under `-MochiInputScript`'s
+///   guard (a session dialled to a loopback address whose host sends no version: never Mochi.app).
 ///   The console says "settings script: …" (`SettingsScript`).
-/// * `-SillMoveHomeTest to:HOST:PORT|refused|other:PORT` — with `-SillDialSaved 1`: a second after the
+/// * `-MochiMoveHomeTest to:HOST:PORT|refused|other:PORT` — with `-MochiDialSaved 1`: a second after the
 ///   remote session's first window list, its saved Mac is listed as a network row with its Mac ID
-///   (named "‹Mac› (home test)", so Sill.app's own row on this Mac never hides it) at a home door that
-///   speaks TLS, so the move home runs for real against `SillHost --synthetic --remote --pairing`
-///   with SILL_TEST_REMOTE_ORIGIN=vpn (one identity for both doors, SILL_TEST_REMOTE_DIR), dialed
+///   (named "‹Mac› (home test)", so Mochi.app's own row on this Mac never hides it) at a home door that
+///   speaks TLS, so the move home runs for real against `MochiHost --synthetic --remote --pairing`
+///   with MOCHI_TEST_REMOTE_ORIGIN=vpn (one identity for both doors, MOCHI_TEST_REMOTE_DIR), dialed
 ///   pinned to the saved Mac's key, never plain: `to:` the host's home door, `refused` port 1 of the
 ///   remote session's host (each try fails), `other:` another synthetic host (another launch, or
-///   another key). `-SillDialSaved remotely` dials the first saved Mac as Connect Remotely does (a
+///   another key). `-MochiDialSaved remotely` dials the first saved Mac as Connect Remotely does (a
 ///   session that never moves home). The console says "remote: …".
-/// * `-SillConnectCase <case>` — show the connect screen instead, in a discovery state: `looking`,
+/// * `-MochiConnectCase <case>` — show the connect screen instead, in a discovery state: `looking`,
 ///   `hint` (nothing listed: the hint and Search Nearby), `nearby` (a Wi-Fi row and Direct
 ///   rows), `methods` (a row ending in each word: Wired, Wi-Fi, none, Direct, and long names) or
 ///   `denied` (Local Network access denied: the status says what to do, no hint); `update` (a Mac
-///   refused this version: "Update Sill on your iPad to keep using Mac mini. It needs version 1.2
-///   or later." as the status line above a Wi‑Fi row, and "Update Sill in the App Store" under it
-///   when `-SillAppStoreURL https://apps.apple.com/app/id000000000` gives the link an address) or
+///   refused this version: "Update Mochi on your iPad to keep using Mac mini. It needs version 1.2
+///   or later." as the status line above a Wi‑Fi row, and "Update Mochi in the App Store" under it
+///   when `-MochiAppStoreURL https://apps.apple.com/app/id000000000` gives the link an address) or
 ///   `notice` (a goodbye reason this build does not know: the Mac's two-line message, no link);
 ///   or remote access's: `remote` (Remote rows), `addmac`, `addcode`, `addcodeerror`, `pairing`,
-///   `remotedial`, `remotefail` (with `-SillRemoteFailure vpnoff|timeout|timeoutip|refused|dns|
-///   wrongmac|revoked|notsill|gaveup|quit|removed|remoteoff`), `camera` (refused) or
+///   `remotedial`, `remotefail` (with `-MochiRemoteFailure vpnoff|timeout|timeoutip|refused|dns|
+///   wrongmac|revoked|notmochi|gaveup|quit|removed|remoteoff`), `camera` (refused) or
 ///   `externalpair` (an outside link's confirmation); or pairing at home's
 ///   (docs/home-pairing-plan.md §7.9): `homerows` (a saved Wi-Fi row, "Not paired", an unpaired
 ///   "Wired" over the cable, a Wired row through a USB Ethernet adapter reading "Not paired", an
-///   open door's row reading "Not paired", "Update Sill", and long names), `homeasking` (a tap's ask: "Pairing with Mac mini…", the row
+///   open door's row reading "Not paired", "Update Mochi", and long names), `homeasking` (a tap's ask: "Pairing with Mac mini…", the row
 ///   lit), `homecard` (the home card, scanning), `homecode` (its typed path), `homecodeerror` (a
 ///   wrong code), `homelocked`, `homeopenonmac`, `homerevoked`, `homecabledone`, `homeolder` (a tap
-///   on an "Update Sill" row) or `pairingrequired`; or `asleep` (issue #69: a saved Mac's row stays
+///   on an "Update Mochi" row) or `pairingrequired`; or `asleep` (issue #69: a saved Mac's row stays
 ///   listed and the automatic reconnect's dials of it have not connected: "Mac mini isn’t answering.
-///   It may be asleep. Sill keeps trying, or tap it to try now."). Ignored with `-SillLive 1`. The
+///   It may be asleep. Mochi keeps trying, or tap it to try now."). Ignored with `-MochiLive 1`. The
 ///   mock never browses; Search Nearby and a row's tap only change what it shows (see
 ///   `MockCatalog.ConnectCase`).
-/// * `-SillBrowserFail N` — in the normal app and under `-SillLive 1`: each of the first N network
+/// * `-MochiBrowserFail N` — in the normal app and under `-MochiLive 1`: each of the first N network
 ///   browsers is reported failed with kDNSServiceErr_DefunctConnection (-65569) half a second after it
 ///   starts, as iOS reports a suspended app's, so the browser is made again after 1, 2, 4… s
 ///   (DiscoveryPolicy.rebuildBrowser): the simulator's browsers use the Mac's own mDNSResponder, which
 ///   never makes an app's connection defunct. The console says what happened ("browser: …"; the return
 ///   from the background makes the network browser again too, and the nearby one if it runs, "browser:
 ///   rebuilt … (back from the background)"), and the automatic reconnect its dials ("reconnect: …").
-/// * Pairing at home, in the normal app and under `-SillLive 1` (§7.9): `-SillServiceType
-///   _silltest._tcp` (the browsers look for that type: a test host registered with
-///   SILL_TEST_SERVICE_TYPE is a real row, and no real Mac is; the Debug build's Info.plist
-///   declares it); `-SillHomeDoor paired|open|plain` (what a `-SillConnect` address counts as: an
+/// * Pairing at home, in the normal app and under `-MochiLive 1` (§7.9): `-MochiServiceType
+///   _mochitest._tcp` (the browsers look for that type: a test host registered with
+///   MOCHI_TEST_SERVICE_TYPE is a real row, and no real Mac is; the Debug build's Info.plist
+///   declares it); `-MochiHomeDoor paired|open|plain` (what a `-MochiConnect` address counts as: an
 ///   address has no TXT record; `paired` is the one saved Mac when exactly one is saved, else an
-///   unsaved Mac whose door asks for pairing); `-SillForgetHomeTLS 1` (dial an older Sill.app
-///   plainly again); `-SillCableTest 1` (this device's path counts as the USB cable for the ask);
-///   and for the gates, which drive no UI: `-SillTapRow <name prefix>` (taps that row once, as soon
-///   as it is listed), `-SillHomeCode <digits>` and `-SillHomeLink <sill://pair…>` (typed into, or
-///   scanned by, the home card once the Mac shows its code), `-SillOverlayCode <digits>` (Pair This
+///   unsaved Mac whose door asks for pairing); `-MochiForgetHomeTLS 1` (dial an older Mochi.app
+///   plainly again); `-MochiCableTest 1` (this device's path counts as the USB cable for the ask);
+///   and for the gates, which drive no UI: `-MochiTapRow <name prefix>` (taps that row once, as soon
+///   as it is listed), `-MochiHomeCode <digits>` and `-MochiHomeLink <mochi://pair…>` (typed into, or
+///   scanned by, the home card once the Mac shows its code), `-MochiOverlayCode <digits>` (Pair This
 ///   iPad… with that code, once, over a session at home over TLS).
-/// * Real pairing, in the normal app and under `-SillLive 1` (not the mock): `-SillPairURL
-///   '<sill://pair…>'` pairs with that link at launch, without the confirmation, at the link's own
+/// * Real pairing, in the normal app and under `-MochiLive 1` (not the mock): `-MochiPairURL
+///   '<mochi://pair…>'` pairs with that link at launch, without the confirmation, at the link's own
 ///   addresses only, as Add a Mac… does (a link with none, a home-only one, pairs nothing): a
-///   confirmed link tries the home rows first, which the gates reach with `-SillTapRow` and
-///   `-SillHomeLink` above; `-SillPairCode
-///   <12 digits> -SillPairAddress host:port` the typed path; `-SillDialSaved 1` dials the first
-///   saved Mac as a tap on its Remote row would; `-SillForgetMacs 1` clears the saved Macs and
-///   this device's key; `-SillDeviceKeySE 1` makes and uses a Secure Enclave device key under its
+///   confirmed link tries the home rows first, which the gates reach with `-MochiTapRow` and
+///   `-MochiHomeLink` above; `-MochiPairCode
+///   <12 digits> -MochiPairAddress host:port` the typed path; `-MochiDialSaved 1` dials the first
+///   saved Mac as a tap on its Remote row would; `-MochiForgetMacs 1` clears the saved Macs and
+///   this device's key; `-MochiDeviceKeySE 1` makes and uses a Secure Enclave device key under its
 ///   own tag (R0-a: a real device only, the simulator has no Secure Enclave);
-///   `-Sill.savedMacs '<JSON>'` seeds the saved Macs for one run (never written; `'[]'` empties);
-///   `-SillRemoteRoute vpn|internet` makes a remote session to a test host on loopback count as
+///   `-Mochi.savedMacs '<JSON>'` seeds the saved Macs for one run (never written; `'[]'` empties);
+///   `-MochiRemoteRoute vpn|internet` makes a remote session to a test host on loopback count as
 ///   one through Tailscale or over the internet (the 60 fps request, the slow-link callout), and
-///   `-SillScreenFPS 120` makes the simulator's screen count as a 120 Hz one (also in the mock).
-/// * `-Sill.directWirelessMacs '("Mac mini")'` — not a harness argument either: the device's saved
+///   `-MochiScreenFPS 120` makes the simulator's screen count as a 120 Hz one (also in the mock).
+/// * `-Mochi.directWirelessMacs '("Mac mini")'` — not a harness argument either: the device's saved
 ///   memory of Macs seen with Direct Wireless on, which a launch argument sets for one run (`'()'`
-///   empties it), in the normal app and under `-SillLive 1`. Unlike `-Sill.savedMacs`, what the
+///   empties it), in the normal app and under `-MochiLive 1`. Unlike `-Mochi.savedMacs`, what the
 ///   run learns is still saved.
-/// * Versions, in the normal app too: `-SillHelloVersion <v>` is the version this device's hello
-///   (kind 23) gives, for a host's device floor under test (`SILL_TEST_MIN_DEVICE_VERSION`);
-///   `-SillAppStoreURL <https url>` is the App Store link's address while SillLinks has none.
-/// * The first-run tour (TourPolicy, TourOverlay), in the mock, under `-SillLive 1` and in the
+/// * Versions, in the normal app too: `-MochiHelloVersion <v>` is the version this device's hello
+///   (kind 23) gives, for a host's device floor under test (`MOCHI_TEST_MIN_DEVICE_VERSION`);
+///   `-MochiAppStoreURL <https url>` is the App Store link's address while MochiLinks has none.
+/// * The first-run tour (TourPolicy, TourOverlay), in the mock, under `-MochiLive 1` and in the
 ///   normal app. Without one of these no Debug build ever shows it by itself, so every other photo
 ///   and live test looks as it did; Release and TestFlight builds always follow its rule.
-///   `-SillTourState fresh|landscape|done|skipped|saved` turns the automatic tour on: `fresh` is
+///   `-MochiTourState fresh|landscape|done|skipped|saved` turns the automatic tour on: `fresh` is
 ///   nothing seen, `landscape` the three sideways steps seen (an upright size shows the laptop
 ///   card), `done` all of it, `skipped` Skip tapped, each for this run only and never written;
-///   `saved` reads and writes `Sill.tourSeen` and `Sill.tourSkipped`, as a Release build does. In
-///   the mock the picture counts from launch. `-SillTour touch|bar|settings|laptop` starts the tour
+///   `saved` reads and writes `Mochi.tourSeen` and `Mochi.tourSkipped`, as a Release build does. In
+///   the mock the picture counts from launch. `-MochiTour touch|bar|settings|laptop` starts the tour
 ///   at that step as Take the Tour shows it (every step of the layout, from that one; a step the
 ///   layout lacks starts at the first), with no beat, at the first picture. Stand-ins for what the
-///   gates may not do: `-SillTourPress next@S|skip@S` presses Next (Done on the last card) S
-///   seconds after each card appears, or Skip once; `-SillTourActivityAt S` is a touch S seconds
+///   gates may not do: `-MochiTourPress next@S|skip@S` presses Next (Done on the last card) S
+///   seconds after each card appears, or Skip once; `-MochiTourActivityAt S` is a touch S seconds
 ///   after the picture of the app run's first session (the automatic reconnect's session after
-///   it gets none); `-SillTakeTourAt S` opens the Settings panel S seconds after the picture and
-///   presses its Take the Tour a second later; `-SillTourVoiceOver 1` gives the run and its words
+///   it gets none); `-MochiTakeTourAt S` opens the Settings panel S seconds after the picture and
+///   presses its Take the Tour a second later; `-MochiTourVoiceOver 1` gives the run and its words
 ///   as under VoiceOver. The console says what happened ("tour: …").
-/// * `-SillOrientation landscape|portrait` — the normal app only: asks the window scene for that
+/// * `-MochiOrientation landscape|portrait` — the normal app only: asks the window scene for that
 ///   orientation at launch (a phone simulator sideways, with its real safe areas). The Duo's inner
 ///   display refuses it (UISceneErrorDomain 101): fold and turn its simulator with Tests/duorig.
 ///
@@ -434,16 +450,16 @@ struct LayoutHarness: View {
         let scanOverlay: Bool
         /// The mock Mac's menus. Ignored when `live`, whose session has the Mac's own.
         let macMenu: MockCatalog.MenuCase
-        /// The mock's pointer state (`-SillPointer`), and Q2's flip (`-SillPencilPointer 1`). Ignored
+        /// The mock's pointer state (`-MochiPointer`), and Q2's flip (`-MochiPencilPointer 1`). Ignored
         /// when `live`.
         let pointer: String?
         let pencilPointer: Bool
-        /// The Duo's hinge stand-in (`-SillHinge`), nil for none; the fake screen's safe area.
+        /// The Duo's hinge stand-in (`-MochiHinge`), nil for none; the fake screen's safe area.
         let hinge: DuoPosture.Hinge?
         let insets: EdgeInsets?
 
         /// What the screens read of the hinge here: the stand-in, or nothing (never the device's:
-        /// without `-SillHinge`, a stand-in of no hinge and no fold, so that the Duo simulator's own
+        /// without `-MochiHinge`, a stand-in of no hinge and no fold, so that the Duo simulator's own
         /// fold, which DuoPosture.read goes by before a hinge is reported, never reaches the screen).
         var duoEnvironment: DuoEnvironment {
             guard let hinge else { return DuoEnvironment(hinge: .unknown, source: .standIn(nil)) }
@@ -452,33 +468,33 @@ struct LayoutHarness: View {
 
         static var fromLaunchArguments: Spec? {
             let defaults = UserDefaults.standard
-            guard let raw = defaults.string(forKey: "SillLayout") else { return nil }
+            guard let raw = defaults.string(forKey: "MochiLayout") else { return nil }
             let parts = raw.lowercased().split(separator: "x")
             guard parts.count == 2,
                   let width = Double(parts[0]), let height = Double(parts[1]),
                   width > 0, height > 0 else { return nil }
             return Spec(size: CGSize(width: width, height: height),
-                        drawerOpen: defaults.bool(forKey: "SillDrawer"),
-                        keyboardShown: defaults.bool(forKey: "SillKeyboard"),
-                        scaleOpen: defaults.bool(forKey: "SillScaleOpen"),
-                        textScale: defaults.double(forKey: "SillScale") > 0 ? defaults.double(forKey: "SillScale") : nil,
-                        live: defaults.bool(forKey: "SillLive"),
-                        mockActive: mockActive(defaults.string(forKey: "SillActive")),
-                        settingsOpen: defaults.bool(forKey: "SillSettings"),
-                        settingsCase: MockCatalog.SettingsCase(rawValue: defaults.string(forKey: "SillSettingsCase") ?? "") ?? .default,
-                        connectCase: MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SillConnectCase") ?? ""),
-                        scanOverlay: defaults.bool(forKey: "SillScanOverlay"),
-                        macMenu: MockCatalog.MenuCase(rawValue: defaults.string(forKey: "SillMacMenu") ?? "") ?? .code,
-                        pointer: defaults.string(forKey: "SillPointer"),
-                        pencilPointer: defaults.bool(forKey: "SillPencilPointer"),
-                        hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SillHinge")),
-                        insets: insets(defaults.string(forKey: "SillSafeArea"), size: CGSize(width: width, height: height),
-                                       streamScreen: defaults.bool(forKey: "SillLive")
-                                           || MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SillConnectCase") ?? "") == nil,
-                                       hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SillHinge"))))
+                        drawerOpen: defaults.bool(forKey: "MochiDrawer"),
+                        keyboardShown: defaults.bool(forKey: "MochiKeyboard"),
+                        scaleOpen: defaults.bool(forKey: "MochiScaleOpen"),
+                        textScale: defaults.double(forKey: "MochiScale") > 0 ? defaults.double(forKey: "MochiScale") : nil,
+                        live: defaults.bool(forKey: "MochiLive"),
+                        mockActive: mockActive(defaults.string(forKey: "MochiActive")),
+                        settingsOpen: defaults.bool(forKey: "MochiSettings"),
+                        settingsCase: MockCatalog.SettingsCase(rawValue: defaults.string(forKey: "MochiSettingsCase") ?? "") ?? .default,
+                        connectCase: MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "MochiConnectCase") ?? ""),
+                        scanOverlay: defaults.bool(forKey: "MochiScanOverlay"),
+                        macMenu: MockCatalog.MenuCase(rawValue: defaults.string(forKey: "MochiMacMenu") ?? "") ?? .code,
+                        pointer: defaults.string(forKey: "MochiPointer"),
+                        pencilPointer: defaults.bool(forKey: "MochiPencilPointer"),
+                        hinge: DuoPosture.hinge(argument: defaults.string(forKey: "MochiHinge")),
+                        insets: insets(defaults.string(forKey: "MochiSafeArea"), size: CGSize(width: width, height: height),
+                                       streamScreen: defaults.bool(forKey: "MochiLive")
+                                           || MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "MochiConnectCase") ?? "") == nil,
+                                       hinge: DuoPosture.hinge(argument: defaults.string(forKey: "MochiHinge"))))
         }
 
-        /// `-SillSafeArea T,L,B,R` (or `none`), else the Duo's display's own at its four sizes, with
+        /// `-MochiSafeArea T,L,B,R` (or `none`), else the Duo's display's own at its four sizes, with
         /// the status bar as this build shows it there: hidden on the stream screen with a hinge
         /// open, every pose (DuoPosture.hidesStatusBar), shown on every other screen and the cover.
         private static func insets(_ raw: String?, size: CGSize, streamScreen: Bool, hinge: DuoPosture.Hinge?) -> EdgeInsets? {
@@ -503,7 +519,7 @@ struct LayoutHarness: View {
     }
 
     let spec: Spec
-    /// The app's real client, used only when `-SillLive 1` was passed.
+    /// The app's real client, used only when `-MochiLive 1` was passed.
     @ObservedObject var live: StreamClient
     @StateObject private var mock: StreamClient
 
@@ -520,7 +536,7 @@ struct LayoutHarness: View {
         GeometryReader { geo in
             let fit = Fit(screen: spec.size, room: geo.size)
             ZStack {
-                Color.black
+                Palette.background
                 insetScreen
                     .environment(\.duoEnvironment, spec.duoEnvironment)
                     .frame(width: spec.size.width, height: spec.size.height)
@@ -541,16 +557,45 @@ struct LayoutHarness: View {
             }
         }
         .ignoresSafeArea()
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .statusBar(hidden: true)
         // The iPad's menu bar follows the client this frame shows, as the app's does.
         .background(WindowSessionObserver(client: spec.live ? live : mock))
         .onAppear {
-            SecondWindow.openFromLaunchArgument()   // -SillSecondWindow 1
+            SecondWindow.openFromLaunchArgument()   // -MochiSecondWindow 1
+            exportDocumentationPreviewIfRequested()
             if spec.live {
                 live.startBrowsing()
                 live.startRemote()
                 live.connectFromLaunchArgument()
+            }
+        }
+    }
+
+    /// Documentation screenshots are restricted to this DEBUG mock harness.
+    /// Never export a live session, another app's windows, or the device status bar.
+    @MainActor private func exportDocumentationPreviewIfRequested() {
+        guard !spec.live,
+              let name = UserDefaults.standard.string(forKey: "MochiExportPreview"),
+              !name.isEmpty, name.count <= 64,
+              name.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.contains($0) || $0 == "-" }) else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            guard UIApplication.shared.applicationState == .active,
+                  let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
+                  let window = scene.windows.first(where: \.isKeyWindow) else { return }
+            let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            do {
+                let folder = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask,
+                                                        appropriateFor: nil, create: true)
+                    .appendingPathComponent("DocumentationPreviews", isDirectory: true)
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                guard let png = image.pngData() else { return }
+                try png.write(to: folder.appendingPathComponent(name + ".png"), options: .atomic)
+                print("Documentation mock preview exported: \(name)")
+            } catch {
+                print("Documentation mock preview export failed: \(error.localizedDescription)")
             }
         }
     }
@@ -586,7 +631,7 @@ struct LayoutHarness: View {
                                                   bottom: max(0, want.bottom - have.bottom),
                                                   trailing: max(0, want.trailing - have.trailing)))
                     // Black under the insets too, as the app's own root is (ContentView's `app`).
-                    .background(Color.black)
+                    .background(Palette.background)
             }
         } else {
             screen
@@ -596,7 +641,7 @@ struct LayoutHarness: View {
     @ViewBuilder private var screen: some View {
         if spec.live {
             ZStack {
-                Color.black
+                Palette.background
                 if live.connected {
                     StreamScreen(client: live,
                                  drawerOpen: spec.drawerOpen,
@@ -611,7 +656,7 @@ struct LayoutHarness: View {
         } else if let c = spec.connectCase {
             let options = MockCatalog.connectScreenOptions(c)
             ZStack {
-                Color.black
+                Palette.background
                 ConnectScreen(client: mock, adding: options.adding, typed: options.typed, scannerOverride: options.scanner)
             }
         } else {
@@ -625,7 +670,7 @@ struct LayoutHarness: View {
     }
 }
 
-/// `-SillInputScript '<t> <step>; …'` (with `-SillLive 1`): input for the simulator gates of
+/// `-MochiInputScript '<t> <step>; …'` (with `-MochiLive 1`): input for the simulator gates of
 /// docs/pointer-visibility-plan.md (S2–S5), which cannot put a finger on the simulator. `t` is
 /// seconds since the session's first window list; a step is
 /// * `down` — a finger lands on the portrait pad: a stroke starts, its cursor from the anchor;
@@ -651,11 +696,11 @@ struct LayoutHarness: View {
 /// own methods, so the feed, the anchor and the sprite get what a finger would give them. The
 /// console prints "input script: t=… <step>" as each runs. Once per launch.
 ///
-/// Only against a test host on this Mac (`refusal`): the steps send real input, and Sill.app, whose
+/// Only against a test host on this Mac (`refusal`): the steps send real input, and Mochi.app, whose
 /// home door admits loopback, would post it, clicking, typing and moving the Mac's real pointer. So
 /// the session must have been dialled to a loopback address, and its first window list must carry
-/// no `hostVersion` (Sill.app always sends one; SillHost and the bare SillMenuBar never do). The
-/// gates start only `--synthetic` hosts, which post nothing; SillHost or the bare SillMenuBar without
+/// no `hostVersion` (Mochi.app always sends one; MochiHost and the bare MochiMenuBar never do). The
+/// gates start only `--synthetic` hosts, which post nothing; MochiHost or the bare MochiMenuBar without
 /// `--synthetic` would post the input, so never point a script at one.
 enum InputScript {
     enum Step: Equatable, CustomStringConvertible {
@@ -740,16 +785,16 @@ enum InputScript {
     }
 
     /// Why the script must not run against this session, or nil when it may: it runs only when the
-    /// session was dialled to a loopback address (`-SillConnect 127.0.0.1:PORT`, `::1:PORT`,
+    /// session was dialled to a loopback address (`-MochiConnect 127.0.0.1:PORT`, `::1:PORT`,
     /// `[::1]:PORT` or `localhost:PORT`; a Bonjour row, a saved Mac or any other address never is)
-    /// and the host's first window list carries no `hostVersion`, which Sill.app always sends.
+    /// and the host's first window list carries no `hostVersion`, which Mochi.app always sends.
     /// (UserDefaults drops `[::1]:PORT`, a launch argument that starts like a property list but is
     /// not one; StreamClient.init puts it back from the command line.)
     static func refusal(endpoint: NWEndpoint?, hostVersion: String?) -> String? {
         guard let endpoint, isLoopback(endpoint) else {
-            return "the session was not dialled to a loopback address (-SillConnect 127.0.0.1:PORT)"
+            return "the session was not dialled to a loopback address (-MochiConnect 127.0.0.1:PORT)"
         }
-        if let hostVersion { return "the host says it is Sill \(hostVersion), which posts input to this Mac" }
+        if let hostVersion { return "the host says it is Mochi \(hostVersion), which posts input to this Mac" }
         return nil
     }
 
@@ -769,7 +814,7 @@ enum InputScript {
     /// if `refusal` lets it.
     static func sessionListed(_ client: StreamClient) {
         let defaults = UserDefaults.standard
-        guard !started, defaults.bool(forKey: "SillLive"), let text = defaults.string(forKey: "SillInputScript") else { return }
+        guard !started, defaults.bool(forKey: "MochiLive"), let text = defaults.string(forKey: "MochiInputScript") else { return }
         started = true
         if let why = refusal(endpoint: client.connection?.endpoint, hostVersion: client.hostVersion) {
             print("input script: refused: \(why)")
@@ -824,7 +869,7 @@ enum InputScript {
     }
 }
 
-/// `-SillSettingsScript '<t> <step>; …'`: the Settings panel's controls for the simulator gates, which
+/// `-MochiSettingsScript '<t> <step>; …'`: the Settings panel's controls for the simulator gates, which
 /// have no finger (docs/remote-bundle-plan.md S3): `t` is seconds since the session's first window
 /// list; a step is `set K=V[,K=V]` (maxFPS, bitrate, captureScale, prioritizeSpeed, virtualDisplay:
 /// a control's change, through `changeSettings` as the panel sends it), `suggestion` (the link
@@ -833,12 +878,12 @@ enum InputScript {
 /// `sendClipboard`, the receipt and its note included: docs/clipboard-plan.md). The
 /// console says "settings script: …" at each. It runs in the normal app too, under InputScript's
 /// guard: only a session dialled to a loopback address (a remote dial's winner through a relay
-/// counts) whose host's first window list has no version, so never Sill.app's settings.
+/// counts) whose host's first window list has no version, so never Mochi.app's settings.
 enum SettingsScript {
     private static var started = false
 
     static func sessionListed(_ client: StreamClient) {
-        guard !started, let text = UserDefaults.standard.string(forKey: "SillSettingsScript") else { return }
+        guard !started, let text = UserDefaults.standard.string(forKey: "MochiSettingsScript") else { return }
         started = true
         if let why = InputScript.refusal(endpoint: client.connection?.endpoint, hostVersion: client.hostVersion) {
             print("settings script: refused: \(why)")
@@ -900,11 +945,11 @@ enum SettingsScript {
 /// reached over peer-to-peer Wi-Fi; "Remote" for a saved Mac dialed through its VPN or the internet;
 /// nothing when the device cannot tell), or, at home, in what a tap does first: "Not paired" (the
 /// Mac shows a code), "Wired" for an unpaired Mac on the USB cable (it pairs by itself), "Update
-/// Sill" (its Sill is too old for this build) (docs/home-pairing-plan.md §7.3); when none turns up
+/// Mochi" (its Mochi is too old for this build) (docs/home-pairing-plan.md §7.3); when none turns up
 /// on the network, why, with Search Nearby; and Add a Mac… last, which unfolds the pairing card in
 /// the column's place (docs/remote-access-plan.md §7.8, §7.10). When a tap's ask makes the Mac show
 /// its code, the home card unfolds there instead, for that row (§7.5, §7.8). A saved Mac's row has a
-/// menu: Connect or Connect Remotely, and Forget. Along the bottom, a footer says Sill needs its
+/// menu: Connect or Connect Remotely, and Forget. Along the bottom, a footer says Mochi needs its
 /// free Mac app and where to get it, and links support and the privacy policy (App Review
 /// guidelines 1.5, 2.1 and 5.1.1(i)). None of it shows while connected: the stream screen takes
 /// this one's place (`ContentView`).
@@ -1016,6 +1061,11 @@ struct ConnectScreen: View {
             }
             .duoLog(posture, size: geo.size, screen: "connect screen")
         }
+        .background {
+            LinearGradient(colors: [Palette.bar, Palette.background, Palette.control.opacity(0.65)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+        }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onChange(of: client.pairing) { old, new in
             // Paired but no session came (10 s): the card closes, and the Mac is a saved row.
@@ -1050,6 +1100,23 @@ struct ConnectScreen: View {
 
     private func column(_ layout: ConnectLayout) -> some View {
         VStack(alignment: .leading, spacing: 6) {
+            if !carded && client.pendingLink == nil {
+                HStack(alignment: .center, spacing: 12) {
+                    MochiMascot().frame(width: 76, height: 76)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Mochi")
+                            .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                            .foregroundStyle(Palette.text)
+                            .accessibilityAddTraits(.isHeader)
+                        Text("A little closer to your Mac.")
+                            .font(.subheadline)
+                            .foregroundStyle(Palette.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.bottom, 18)
+            }
             // Leading, so the title never jumps sideways when the hint, a row or the card widens the
             // column. Vertically it is still centred (ColumnOverFooter): what adds height moves it up
             // by half as much. It wraps, never truncates, under the home card ("Pair with" and a
@@ -1100,10 +1167,10 @@ struct ConnectScreen: View {
 
         // A Mac that no longer serves this version said so (GoodbyePolicy's "update", its words the
         // status line above): where to get the new one, while the status line still says why. Not
-        // before Sill's App Store address is known (SillLinks): the words say what to do anyway.
-        if let notice = client.notice, notice.storeLink, notice.text == client.status, let url = SillLinks.appStore {
+        // before Mochi's App Store address is known (MochiLinks): the words say what to do anyway.
+        if let notice = client.notice, notice.storeLink, notice.text == client.status, let url = MochiLinks.appStore {
             Link(destination: url) {
-                Text("Update Sill in the App Store")
+                Text("Update Mochi in the App Store")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -1116,9 +1183,9 @@ struct ConnectScreen: View {
 
         ForEach(client.macs) { mac in
             // The kind of link, never the Wi-Fi network's name: that needs Location access, which
-            // Sill does not ask for (DiscoveryPolicy.method); "Remote" for a saved Mac dialed away
+            // Mochi does not ask for (DiscoveryPolicy.method); "Remote" for a saved Mac dialed away
             // from home; at home, what a tap does first when it pairs ("Not paired", "Wired" over
-            // the cable) or cannot connect ("Update Sill"), with VoiceOver's label and hint for it
+            // the cable) or cannot connect ("Update Mochi"), with VoiceOver's label and hint for it
             // (DiscoveryPolicy.RowWord). The row a tap's ask is waiting on is lit, as the drawer
             // lights the app on screen, while the status line says "Pairing with…".
             DrawerRow(height: 50, highlighted: client.homeAsk.map { $0.phase == .asking && $0.target.row == mac.id } ?? false,
@@ -1139,7 +1206,7 @@ struct ConnectScreen: View {
         }
 
         if client.showsNearbyHint {
-            Text("Your Mac has to be on the same Wi\u{2011}Fi network as this \(device), or have Direct Wireless Connection turned on in Sill. Away from home, add it once with a code from your Mac.")
+            Text("Your Mac has to be on the same Wi\u{2011}Fi network as this \(device), or have Direct Wireless Connection turned on in Mochi. Away from home, add it once with a code from your Mac.")
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1239,62 +1306,20 @@ struct ConnectScreen: View {
 
     // MARK: The footer
 
-    /// For someone who found Sill here first, and for App Review: what else it needs, where to get
-    /// it, where to get help, and the privacy policy. Muted and 13 pt like the status line, but it
-    /// follows the text size, up to the Settings panel's cap (the column keeps its fixed sizes); it
-    /// wraps, never truncates. Each link opens in Safari (a Link hands its URL to the environment's
-    /// openURL), and VoiceOver reads it as a link. The addresses are SillLinks'.
+    /// Companion requirement shown below the connection controls.
     private func footer(_ layout: ConnectLayout) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Needs the free Sill app on your Mac.")
+            Text("Needs the Mochi companion on your Mac.")
                 .foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true)
-            // All three on one line while they fit, else the download link over the other two,
-            // the lines far enough apart that their tap areas meet without overlapping. Upward the
-            // areas reach a little into the line above, which is plain text.
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 0) {
-                    downloadLink
-                    linkSeparator
-                    supportAndPrivacy
-                }
-                VStack(alignment: .leading, spacing: 2 * Self.linkReach) {
-                    downloadLink
-                    supportAndPrivacy
-                }
-            }
         }
         .font(.footnote)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .padding(.horizontal, 10)
-        // Under the column's own edge and as wide as the rows, so the two line up; on a screen
-        // narrower than 412 pt (a phone, a window in Slide Over) that is the screen's width less
-        // the margins, so the links go to a second line rather than past the edge.
         .frame(width: layout.columnWidth, alignment: .leading)
         .padding(.leading, layout.columnX)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // Room for the last link's tap area, which then stays on the screen.
         .padding(.bottom, Self.linkReach)
-    }
-
-    private var downloadLink: some View {
-        footerLink("Get it at \(SillLinks.siteName)", to: SillLinks.download)
-    }
-
-    /// Support, then the privacy policy, on one line.
-    private var supportAndPrivacy: some View {
-        HStack(spacing: 0) {
-            footerLink("Support", to: SillLinks.support)
-            linkSeparator
-            footerLink("Privacy Policy", to: SillLinks.privacy)
-        }
-    }
-
-    /// The dot between two links on a line. VoiceOver skips it.
-    private var linkSeparator: some View {
-        Text(" · ")
-            .foregroundStyle(Palette.muted)
-            .accessibilityHidden(true)
     }
 
     private func footerLink(_ title: LocalizedStringKey, to url: URL) -> some View {

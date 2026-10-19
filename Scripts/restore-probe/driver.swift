@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 import AppKit
 import ScreenCaptureKit
@@ -121,7 +122,7 @@ final class Probe {
     func settle() async { try? await Task.sleep(for: .milliseconds(250)) }
 
     func open(_ tag: String, _ r: CGRect, fixed: Bool = false) async -> (Owner, SCWindow)? {
-        guard let o = try? Owner("Sill restore probe \(tag) \(UUID().uuidString.prefix(8))", r, fixed: fixed) else {
+        guard let o = try? Owner("Mochi restore probe \(tag) \(UUID().uuidString.prefix(8))", r, fixed: fixed) else {
             tally(false, "\(tag): the probe's window did not come up"); return nil
         }
         guard let w = await scwindow(o.windowID) else { o.end(); tally(false, "\(tag): ScreenCaptureKit did not list it"); return nil }
@@ -252,7 +253,7 @@ final class Probe {
             for l in lines { print("  " + l) }
             kill(o.pid, SIGCONT); await settle()
             tally(lines.count == 1 && lines[0].contains("not answering") && took < 2.5, String(format: "not answering, in %.2f s", took))
-            expect("after (left at Sill's size)", live(w.windowID), during)
+            expect("after (left at Mochi's size)", live(w.windowID), during)
             o.end()
         }
 

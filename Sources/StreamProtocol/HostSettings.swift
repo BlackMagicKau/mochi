@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 
 // The Mac's settings as a device sees and changes them (kinds 16 and 17, see StreamMessage.swift):
@@ -5,7 +6,7 @@ import Foundation
 // later change, because older builds of either side must keep decoding what newer ones send:
 //
 // • A device knows the host supports settings when a `.hostSettings` arrives on this connection,
-//   never by a version: `WindowList.hostVersion` is nil from SillHost, and it and `protocol`
+//   never by a version: `WindowList.hostVersion` is nil from MochiHost, and it and `protocol`
 //   (Switcher.swift) are nil from hosts before 2026-09-25.
 // • Kind numbers are never reused: a new kind takes the next free number, and an older reader maps
 //   a kind it does not know to `.unknown` and skips it (StreamMessage.swift).
@@ -30,13 +31,13 @@ import Foundation
 // • the host: `HostConfig` (`validated()`, `changes(to:)`), `streamSettings`, `applying` and
 //   `DeviceSettings.accepted` in DeviceSettings.swift, and `StreamCoordinator.restartNeeded` when
 //   the running pipeline depends on it;
-// • Sill.app: `HostSettings` (its key, registered default, load and `save(changedFrom:)`),
-//   `DebugHooks.apply` (`-SillSetAfter`), and the status menu and Settings panes when the Mac
+// • Mochi.app: `HostSettings` (its key, registered default, load and `save(changedFrom:)`),
+//   `DebugHooks.apply` (`-MochiSetAfter`), and the status menu and Settings panes when the Mac
 //   shows it;
 // • the device: `SettingsField` and `HostSettingsChange.fields`, `only` and `adding`
 //   (HostSettingsLedger.swift), rule 9 in the ledger's `pick` for an optional field, the panel's
 //   row, and the DEBUG mock's cases (MockCatalog.swift);
-// • Scripts/sillclient.py: the keys `--set` accepts, and `describe`.
+// • Scripts/mochiclient.py: the keys `--set` accepts, and `describe`.
 //
 // Away from home (docs/remote-bundle-plan.md §5) splits Quality and Resolution in two: the home
 // quality and the away quality. An away variant of a setting goes in HostConfig's away knobs
@@ -97,9 +98,9 @@ public struct RunningStream: Codable, Hashable, Sendable {
 }
 
 /// Away from home (docs/remote-bundle-plan.md §5): the Mac's two qualities, which one runs, and
-/// which one this connection's controls set. From a host with an identity (Sill.app; SillHost
+/// which one this connection's controls set. From a host with an identity (Mochi.app; MochiHost
 /// --remote or --pairing); nil from any other host, which has one quality for every device. One
-/// without a remote door (SillHost --pairing alone) sends it too, and no connection there is ever
+/// without a remote door (MochiHost --pairing alone) sends it too, and no connection there is ever
 /// away (`thisConnectionAway` and `awayRunning` false). Every field is required: a host that sends
 /// it sends all of it.
 public struct AwayQuality: Codable, Hashable, Sendable {
@@ -172,9 +173,9 @@ public struct HostSettingsState: Codable, Hashable, Sendable {
     /// the home quality for any other, so a pick is answered in the field it asked about, from an
     /// older device too.
     public var settings: StreamSettings
-    /// Sill.app saves changes; SillHost keeps them until it quits.
+    /// Mochi.app saves changes; MochiHost keeps them until it quits.
     public var persistent: Bool
-    /// False: this host cannot run the virtual display at all (SillHost without --virtual-display).
+    /// False: this host cannot run the virtual display at all (MochiHost without --virtual-display).
     public var virtualDisplayAvailable: Bool
     /// Why the virtual display is unavailable or not working; nil when nothing is wrong.
     public var virtualDisplayNote: String?
@@ -188,7 +189,7 @@ public struct HostSettingsState: Codable, Hashable, Sendable {
     public var stream: RunningStream?
     /// Only in the reply to one device: the token of the change it answers.
     public var answering: Int?
-    /// Away from home: nil from a host without an identity (SillHost without --remote or
+    /// Away from home: nil from a host without an identity (MochiHost without --remote or
     /// --pairing), and from older hosts.
     public var away: AwayQuality?
     /// This connection's link while it cannot keep up; nil while it does, and from older hosts.

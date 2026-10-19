@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 import Network
 import StreamProtocol
@@ -157,7 +158,7 @@ final class RemoteConnector {
             let c = attempt.connection
             c.stateUpdateHandler = nil
             let fp: Data? = RemoteTLS.peerFingerprint(c) ?? { if case .session(let p) = mode { return p }; return nil }()
-            guard let fp else { c.cancel(); onFailed?(Failed(failure: .notSill, candidate: attempt.candidate)); return }
+            guard let fp else { c.cancel(); onFailed?(Failed(failure: .notMochi, candidate: attempt.candidate)); return }
             onWinner?(Winner(connection: c, candidate: attempt.candidate, fingerprint: fp,
                              usedTunnel: c.currentPath?.usesInterfaceType(.other) ?? false))
         case .waiting(let error), .failed(let error):
@@ -209,7 +210,7 @@ final class RemoteConnector {
         case .posix(let code): return code == .ETIMEDOUT ? .timeout : .posix(code.rawValue)
         case .dns(let code): return .dns(code)
         case .tls(let status): return .tls(status)
-        default: return .notSill
+        default: return .notMochi
         }
     }
 }

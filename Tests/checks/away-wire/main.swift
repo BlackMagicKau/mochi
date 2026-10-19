@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // H6 (docs/remote-bundle-plan.md §4 and §11): kind 16's two new fields, `away` (AwayQuality) and
 // `link` (LinkReport), and QualityPreset's two helpers, on their own. Sources/StreamProtocol/
 // HostSettings.swift only imports Foundation, so it compiles alone with this file:
@@ -121,7 +122,7 @@ do {
     check(decode(HostSettingsState.self, awayOnlyJSON) == awayOnly, "…and it round-trips")
     let linkOnly = HostSettingsState(settings: settings, persistent: false, virtualDisplayAvailable: false, softwareEncoder: true, link: link)
     let linkOnlyJSON = encode(linkOnly)
-    check(keys(linkOnlyJSON).contains("link") && !keys(linkOnlyJSON).contains("away"), "link without away (SillHost without --remote or --pairing): no away key")
+    check(keys(linkOnlyJSON).contains("link") && !keys(linkOnlyJSON).contains("away"), "link without away (MochiHost without --remote or --pairing): no away key")
     check(decode(HostSettingsState.self, linkOnlyJSON)?.link == link, "…and the link decodes")
     // A malformed field fails the whole state, as any field does: a host sends both whole or not at all.
     var broken = object(newJSON)

@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import StreamProtocol
 
@@ -117,12 +118,12 @@ struct AddMacCard: View {
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.muted)
         } else {
-            Text("Pair once, and Sill reaches your Mac from anywhere, through your VPN or the internet.")
+            Text("Pair once, and Mochi reaches your Mac from anywhere, through your VPN or the internet.")
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(typed ? "Type the address and code that Sill shows on your Mac."
-                       : "On your Mac, choose Pair iPhone or iPad… in the Sill menu, then point this \(device) at the code.")
+            Text(typed ? "Type the address and code that Mochi shows on your Mac."
+                       : "On your Mac, choose Pair iPhone or iPad… in the Mochi menu, then point this \(device) at the code.")
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.text)
                 .fixedSize(horizontal: false, vertical: true)
@@ -152,7 +153,7 @@ struct AddMacCard: View {
             Button(action: pair) {
                 Text("Pair")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(Palette.onAccent)
                     .frame(minWidth: 88, minHeight: 44)
                     .padding(.horizontal, 12)
                     .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Palette.accent.opacity(working ? 0.4 : 1)))
@@ -285,7 +286,7 @@ struct ProblemLine: View {
             Text(text).fixedSize(horizontal: false, vertical: true)
         }
         .font(.system(size: 13))
-        .foregroundStyle(Color.orange)
+        .foregroundStyle(Palette.warning)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .accessibilityElement(children: .combine)
         .onAppear { AccessibilityNotification.Announcement(text).post() }
@@ -306,7 +307,7 @@ struct EscapeKey: UIViewRepresentable {
 
     /// An EscapeKey is on screen in `window` (the tour, the pairing overlay, the Settings panel, the Add a
     /// Mac card): Esc pressed there is its, and the stream's input view in that window leaves Esc alone
-    /// (InputOverlayView.keyCommands; docs/hardware-keyboard-plan.md §1). Only that window's: each Sill
+    /// (InputOverlayView.keyCommands; docs/hardware-keyboard-plan.md §1). Only that window's: each Mochi
     /// window has its own responder chain, and a key pressed in one never reaches an EscapeKey's command
     /// in another, so Settings open in a window behind leaves Esc to the stream in front.
     static func onScreen(in window: UIWindow?) -> Bool {
@@ -321,13 +322,13 @@ struct EscapeKey: UIViewRepresentable {
     /// A zero-size view that finds its view controller when it joins a window.
     final class Anchor: UIView {
         var action: (() -> Void)?
-        /// The anchors on screen in every Sill window, newest last: in one window the pairing overlay
+        /// The anchors on screen in every Mochi window, newest last: in one window the pairing overlay
         /// over a card answers first.
         fileprivate static var live: [Anchor] = []
         private weak var host: UIViewController?
         private let command: UIKeyCommand = {
             let command = UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [],
-                                       action: #selector(UIViewController.sillEscapeKey(_:)))
+                                       action: #selector(UIViewController.mochiEscapeKey(_:)))
             command.wantsPriorityOverSystemBehavior = true
             return command
         }()
@@ -360,7 +361,7 @@ struct EscapeKey: UIViewRepresentable {
             Self.live.removeAll { $0 === self }
         }
 
-        /// Esc pressed in `window`: the newest anchor there answers, never one in another Sill window,
+        /// Esc pressed in `window`: the newest anchor there answers, never one in another Mochi window,
         /// whose panel the person is not looking at.
         fileprivate static func fire(in window: UIWindow?) {
             guard let window, let anchor = live.last(where: { $0.window === window }) else {
@@ -383,12 +384,12 @@ extension UIViewController {
     /// EscapeKey's command: the chain from whichever responder has the keyboard reaches a view
     /// controller in the window where the key was pressed, which hands the key to the newest anchor in
     /// that window.
-    @objc fileprivate func sillEscapeKey(_ sender: UIKeyCommand) {
+    @objc fileprivate func mochiEscapeKey(_ sender: UIKeyCommand) {
         EscapeKey.Anchor.fire(in: viewIfLoaded?.window)
     }
 }
 
-/// A sill://pair link from outside the app, waiting for the person (§7.7): shown in the card's
+/// A mochi://pair link from outside the app, waiting for the person (§7.7): shown in the card's
 /// place on the connect screen, or over the stream. Never acted on by itself: a poster or a message
 /// could otherwise add a look-alike "Mac" that collects keystrokes.
 struct LinkConfirmation: View {
@@ -413,7 +414,7 @@ struct LinkConfirmation: View {
                 Button(action: pair) {
                     Text("Pair")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(Palette.onAccent)
                         .frame(minWidth: 88, minHeight: 44)
                         .padding(.horizontal, 12)
                         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Palette.accent))

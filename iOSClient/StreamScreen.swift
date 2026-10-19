@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import Combine
 import StreamProtocol
@@ -15,19 +16,25 @@ extension Color {
     }
 }
 
+/// Mochi's matcha chrome. Video and cursor surfaces deliberately keep their own colors.
 enum Palette {
-    static let bar = Color(hex: 0x16181C)          // top bar and drawer background
-    static let control = Color(hex: 0x23262C)      // bar buttons, search field, selected row
-    static let controlOpen = Color(hex: 0x2C3550)  // a bar button whose thing is showing
-    static let accent = Color(hex: 0x9BB7FF)
-    static let text = Color(hex: 0xEEF0F3)
-    static let barLabel = Color(hex: 0xC4C9D1)     // the 11pt labels under the bar icons
-    static let muted = Color(hex: 0xA4ABB5)        // section headers, window counts, placeholder
-    static let panel = Color(hex: 0x1F2126)        // the stream panel behind the video
-    static let trackpad = Color(hex: 0x101215)     // the portrait trackpad's well
-    static let thumbBody = Color(hex: 0x26282D)    // thumbnail placeholder
-    static let thumbTitleBar = Color(hex: 0x34373D)
-    static let iconFallback = Color(hex: 0x3A3D44) // two-letter app badge
+    static let background = Color(hex: 0xFAF8EF)
+    static let bar = Color(hex: 0xFFFBEE)
+    static let control = Color(hex: 0xE2EBCE)
+    static let controlOpen = Color(hex: 0xDDE7CA)
+    static let accent = Color(hex: 0x526D39)
+    static let text = Color(hex: 0x34452A)
+    static let barLabel = Color(hex: 0x52613F)
+    static let muted = Color(hex: 0x5A654B)
+    static let panel = Color.black
+    static let trackpad = Color(hex: 0xE2EBCE)
+    static let thumbBody = Color(hex: 0xE2EBCE)
+    static let thumbTitleBar = Color(hex: 0xD1DFB7)
+    static let iconFallback = Color(hex: 0x526D39)
+    static let onAccent = Color(hex: 0xFFFBEE)
+    static let blush = Color(hex: 0xE9B9A4)
+    static let border = Color(hex: 0x526D39).opacity(0.20)
+    static let warning = Color(hex: 0x956029)
 }
 
 // MARK: - Layout selection
@@ -81,11 +88,11 @@ enum DuoLayout {
 
     /// Whether `.outerPortrait` draws the phone's arrangement: on an iPhone, yes; on an iPad (a
     /// window narrower than 600 pt held upright), no: the compact halves, as before. DEBUG:
-    /// `-SillIdiom pad` (or `phone`) draws the other device's, so the harness can photograph an
+    /// `-MochiIdiom pad` (or `phone`) draws the other device's, so the harness can photograph an
     /// iPad window's on an iPhone simulator (ContentView's contract).
     static var phoneArrangement: Bool {
         #if DEBUG
-        switch UserDefaults.standard.string(forKey: "SillIdiom") {
+        switch UserDefaults.standard.string(forKey: "MochiIdiom") {
         case "pad"?: return false
         case "phone"?: return true
         default: break
@@ -131,7 +138,7 @@ struct StreamScreen: View {
     /// hold lets go meanwhile (`keyboardTakers`).
     @State private var menusOpen = false
     /// Pair This iPad… (the panel's Away from home group): the pairing overlay covers the stream.
-    /// Up here, like the panel, so a rotation keeps it. An outside sill://pair link shows the same
+    /// Up here, like the panel, so a rotation keeps it. An outside mochi://pair link shows the same
     /// overlay with its confirmation.
     @State private var pairingOverlay = false
     /// The DEBUG harness's stand-in for the camera (the simulator has none); nil on a device.
@@ -172,6 +179,7 @@ struct StreamScreen: View {
     @Environment(\.duoEnvironment) private var duoEnvironment
     /// This device's Larger Picture switch (the Settings panel's This iPhone; docs/larger-picture-plan.md).
     /// It acts only while a window streams (`largerPictureNow`).
+    @State private var focusedPhone = false
     @AppStorage(StreamClient.largerPictureKey) private var largerPicture = false
     /// Larger Picture as it was in effect when the Settings panel opened (`largerPictureNow`), which
     /// the arrangement keeps until the panel closes; nil while it is closed. The panel hangs under row
@@ -183,7 +191,7 @@ struct StreamScreen: View {
     #if DEBUG
     /// The console says once when a decision starts to wait.
     @State private var tourWaitLogged: Double? = nil
-    /// `-SillTourPress skip@S` skips once.
+    /// `-MochiTourPress skip@S` skips once.
     @State private var tourSkipPressed = false
     #endif
 
@@ -200,7 +208,7 @@ struct StreamScreen: View {
         _textScale = State(initialValue: textScale)
         _settingsOpen = State(initialValue: settingsOpen)
         // The panel open over the keyboard, as in a session: it took the keyboard down, and closing
-        // it puts it back (`-SillSettings 1 -SillKeyboard 1`).
+        // it puts it back (`-MochiSettings 1 -MochiKeyboard 1`).
         _keyboardBeforeSettings = State(initialValue: settingsOpen && keyboardShown)
         // And it holds the Larger Picture it opened with, as `setSettings` does.
         _largerPictureHeld = State(initialValue: settingsOpen
@@ -230,29 +238,40 @@ struct StreamScreen: View {
             let largerKeyboard = layout == .phone
                 ? PhonePortraitLayout.keyboard(for: geo.size, largerPicture: largerPictureHeld ?? largerPictureNow,
                                                foldable: posture.hinge != .unknown) : nil
-            // The Settings panel's switch: on an iPhone without a hinge whose picture Larger Picture
-            // makes larger, judged on this screen held upright, whichever way it is held now.
-            let offersLarger = DuoLayout.phoneArrangement && posture.hinge == .unknown
-                && PhonePortraitLayout.offersLargerPicture(screen: geo.size)
+            // Ordinary iPhones use the screen-first workspace in either orientation.
+            let usePhoneWorkspace = DuoLayout.phoneArrangement && posture.hinge == .unknown
+            // Its picture already uses all available space; the legacy Larger Picture switch is hidden.
+            let offersLarger = false
             ZStack {
                 Group {
-                    switch duo {
-                    case .innerLandscape:
-                        landscape(bar: .regular, width: geo.size.width, fold: posture.info(in: geo.size))
-                    case .outerLandscape:
-                        landscape(bar: .compact, width: geo.size.width, fold: posture.info(in: geo.size))
-                    case .innerPortrait:
-                        portrait(metrics: .regular)
-                    case .outerPortrait:
-                        portrait(metrics: DuoLayout.phoneArrangement ? .phone : .compact, largerKeyboard: largerKeyboard)
+                    if usePhoneWorkspace {
+                        PhoneStreamScreen(client: client, drawerOpen: $drawerOpen, keyboardShown: $keyboardShown,
+                                          textScale: $textScale, windowMenu: $windowMenu, latched: $latched,
+                                          overlay: overlay, settingsOpen: settingsOpen,
+                                          setSettings: { setSettings($0, restoreKeyboard: $1) },
+                                          menusOpened: menusOpened, menusClosed: menusClosed,
+                                          onPanelSize: { panelSize = $0 }, pairThisDevice: openPairingOverlay,
+                                          linkLine: shownLinkLine)
+                    } else {
+                        switch duo {
+                        case .innerLandscape:
+                            landscape(bar: .regular, width: geo.size.width, fold: posture.info(in: geo.size))
+                        case .outerLandscape:
+                            landscape(bar: .compact, width: geo.size.width, fold: posture.info(in: geo.size))
+                        case .innerPortrait:
+                            portrait(metrics: .regular)
+                        case .outerPortrait:
+                            portrait(metrics: DuoLayout.phoneArrangement ? .phone : .compact, largerKeyboard: largerKeyboard)
+                        }
                     }
                 }
+                .onChange(of: usePhoneWorkspace, initial: true) { _, value in focusedPhone = value }
                 // Under the pairing overlay and the tour nothing takes a touch: not the bar, and
                 // not the stream's UIKit input view (nor, so, the Pencil, a hover or a key).
                 .allowsHitTesting(!overlayShown && tour == nil)
                 // The pointer sprite follows the layout: the trackpad's arrow shows only in the
                 // laptop layout, and a rotation re-renders it at once; the Mac's arrow stays.
-                .onChange(of: DuoLayout.of(geo.size).isPortrait, initial: true) { _, portrait in
+                .onChange(of: DuoLayout.of(geo.size).isPortrait || usePhoneWorkspace, initial: true) { _, portrait in
                     client.setPointerLayout(portrait: portrait)
                 }
                 // The clipboard's chip on screen or not: its 20 s run only while it is, and VoiceOver
@@ -322,7 +341,7 @@ struct StreamScreen: View {
             }
             #endif
         }
-        .background(Color.black)
+        .background(Palette.background)
         .overlayPreferenceValue(WindowMenuAnchorKey.self) { anchor in
             if let anchor, let id = windowMenu, let window = client.windows.first(where: { $0.id == id }) {
                 WindowLightsMenu(anchor: anchor, window: window,
@@ -344,7 +363,8 @@ struct StreamScreen: View {
         // panel away. (Opening the panel closes them, the drawer and the keyboard.)
         .onChange(of: scaleOpen) { _, open in if open { setSettings(false) } }
         .onChange(of: windowMenu) { _, menu in if menu != nil { setSettings(false) } }
-        .ignoresSafeArea(edges: .bottom)
+        .ignoresSafeArea(.keyboard, edges: DuoLayout.phoneArrangement ? [] : .bottom)
+        .ignoresSafeArea(.container, edges: .bottom)
         .onAppear {
             // A fresh connection starts on the Desktop (the client asks for it as soon as the host
             // reports nothing streaming), so the drawer stays closed until the user opens it.
@@ -500,12 +520,12 @@ struct StreamScreen: View {
     }
 
     /// The harness's arguments that act once the stream screen shows (ContentView's contract), once
-    /// per launch. `-SillKeyboard 1` brings the software keyboard up for real in a live session (the
-    /// mock only lights the button, from its init); `-SillKeyboardToggle <s>[,<s>…]` toggles it at
+    /// per launch. `-MochiKeyboard 1` brings the software keyboard up for real in a live session (the
+    /// mock only lights the button, from its init); `-MochiKeyboardToggle <s>[,<s>…]` toggles it at
     /// those seconds as the Keyboard button does, a stand-in for a tap. In a live session (the
-    /// normal app with `-SillConnect`, or `-SillLive 1`) `-SillDrawer 1`, `-SillSettings 1` and
-    /// `-SillScaleOpen 1` (with `-SillScale`) open theirs 1.5 s in, once the Desktop has started
-    /// (`-SillSettingsCloseAt <s>` closes the panel again s seconds in):
+    /// normal app with `-MochiConnect`, or `-MochiLive 1`) `-MochiDrawer 1`, `-MochiSettings 1` and
+    /// `-MochiScaleOpen 1` (with `-MochiScale`) open theirs 1.5 s in, once the Desktop has started
+    /// (`-MochiSettingsCloseAt <s>` closes the panel again s seconds in):
     /// its start closes a drawer opened before it, and the normal app has no harness to pass them
     /// in at the start.
     private func runLaunchArguments() {
@@ -516,13 +536,13 @@ struct StreamScreen: View {
         func after(_ seconds: Double, _ step: @escaping () -> Void) {
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: step)
         }
-        if defaults.bool(forKey: "SillKeyboard"), live {
+        if defaults.bool(forKey: "MochiKeyboard"), live {
             after(0.5) {
-                print("keyboard: -SillKeyboard 1, the input view takes first responder")
+                print("keyboard: -MochiKeyboard 1, the input view takes first responder")
                 overlay.setKeyboard(shown: true)
             }
         }
-        let times = (defaults.string(forKey: "SillKeyboardToggle") ?? "")
+        let times = (defaults.string(forKey: "MochiKeyboardToggle") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in times {
             after(time) {
@@ -532,10 +552,10 @@ struct StreamScreen: View {
                 overlay.toggleKeyboard()
             }
         }
-        // `-SillTurnAt <s>[,<s>…]`: at each second the scene is asked for the other orientation (upright
+        // `-MochiTurnAt <s>[,<s>…]`: at each second the scene is asked for the other orientation (upright
         // or sideways, from the screen's shape then), a turn mid-session with no hand on the simulator
         // (an iPhone's; iPadOS's windowing refuses it, and says so).
-        let turns = (defaults.string(forKey: "SillTurnAt") ?? "")
+        let turns = (defaults.string(forKey: "MochiTurnAt") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in turns {
             after(time) {
@@ -549,13 +569,13 @@ struct StreamScreen: View {
                 }
             }
         }
-        // `-SillAXDump <s>`: s seconds in, the screen's accessibility elements in the order the
+        // `-MochiAXDump <s>`: s seconds in, the screen's accessibility elements in the order the
         // accessibility tree hands them out (VoiceOver's order, without VoiceOver), labels and frames.
-        let dump = defaults.double(forKey: "SillAXDump")
+        let dump = defaults.double(forKey: "MochiAXDump")
         if dump > 0 { after(dump) { Self.accessibilityDump() } }
-        // `-SillLargerPictureToggle <s>[,<s>…]`: Larger Picture switched at those seconds, as the
-        // Settings panel's switch does (saved; without `-Sill.largerPicture`, which would hold it).
-        let toggles = (defaults.string(forKey: "SillLargerPictureToggle") ?? "")
+        // `-MochiLargerPictureToggle <s>[,<s>…]`: Larger Picture switched at those seconds, as the
+        // Settings panel's switch does (saved; without `-Mochi.largerPicture`, which would hold it).
+        let toggles = (defaults.string(forKey: "MochiLargerPictureToggle") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in toggles {
             after(time) {
@@ -565,19 +585,19 @@ struct StreamScreen: View {
             }
         }
         guard live else { return }
-        if defaults.bool(forKey: "SillDrawer") {
+        if defaults.bool(forKey: "MochiDrawer") {
             after(1.5) { print("harness: the drawer opened"); withAnimation(.easeOut(duration: 0.18)) { drawerOpen = true } }
         }
-        if defaults.bool(forKey: "SillSettings") {
+        if defaults.bool(forKey: "MochiSettings") {
             after(1.5) { print("harness: the Settings panel opened"); setSettings(true) }
-            // `-SillSettingsCloseAt <s>`: closed again s seconds in, as Done does (the clipboard's chip
+            // `-MochiSettingsCloseAt <s>`: closed again s seconds in, as Done does (the clipboard's chip
             // waiting under it, then showing: docs/clipboard-plan.md).
-            let closeAt = defaults.double(forKey: "SillSettingsCloseAt")
+            let closeAt = defaults.double(forKey: "MochiSettingsCloseAt")
             if closeAt > 1.5 { after(closeAt) { print("harness: the Settings panel closed"); setSettings(false) } }
         }
-        if defaults.bool(forKey: "SillScaleOpen") {
+        if defaults.bool(forKey: "MochiScaleOpen") {
             after(1.5) {
-                let scale = defaults.double(forKey: "SillScale")
+                let scale = defaults.double(forKey: "MochiScale")
                 if scale > 0 { textScale = scale }
                 print("harness: the Aa ruler opened")
                 scaleOpen = true
@@ -586,7 +606,7 @@ struct StreamScreen: View {
     }
     private static var launchArgumentsRan = false
 
-    /// `-SillAXDump`: walks the key window as an assistive technology does (an element, else its
+    /// `-MochiAXDump`: walks the key window as an assistive technology does (an element, else its
     /// `accessibilityElements`, else its element count, else its subviews) and prints one line per
     /// element: "ax: 1 Apps (14,454 76×50)".
     private static func accessibilityDump() {
@@ -862,7 +882,7 @@ struct StreamScreen: View {
     private func considerTour() {
         tourWait?.cancel()
         tourWait = nil
-        guard tour == nil, let layout = tourLayout else { return }
+        guard !focusedPhone, tour == nil, let layout = tourLayout else { return }
         let now = ProcessInfo.processInfo.systemUptime
         // A touch anywhere, input sent to the Mac, or a control used by any means. VoiceOver's
         // swipes that only move its focus are reading, as a look around the screen is, and are not
@@ -994,7 +1014,7 @@ struct StreamScreen: View {
         }
     }
 
-    /// DEBUG `-SillTourPress`: presses a card's Next (or Skip, once) a while after it appears.
+    /// DEBUG `-MochiTourPress`: presses a card's Next (or Skip, once) a while after it appears.
     private func tourPressLater(_ run: TourRun) {
         #if DEBUG
         guard let press = TourDebug.current.press else { return }
@@ -1063,7 +1083,7 @@ struct StreamScreen: View {
 
     private func contentArea(bar: BarMetrics) -> some View {
         ZStack(alignment: .topLeading) {
-            Color.black
+            Palette.background
 
             ZStack {
                 StreamView(client: client)
@@ -1080,7 +1100,7 @@ struct StreamScreen: View {
             .background(Palette.panel)
             .overlay(alignment: .top) { LinkLineView(text: shownLinkLine) }
             .clipShape(streamShape)
-            .overlay(streamShape.strokeBorder(Color.white.opacity(0.09), lineWidth: 1))
+            .overlay(streamShape.strokeBorder(Palette.border, lineWidth: 1))
             // The panel itself, inside the padding: the size the host fits the Mac window to.
             .onGeometryChange(for: CGSize.self, of: { $0.size }, action: { panelSize = $0 })
             .tourTarget(.stream)
@@ -1620,9 +1640,9 @@ struct WindowStrip: View {
         }
         .onDisappear { lifted = nil; liftOffset = 0 }
         #if DEBUG
-        // Harness: `-SillWindowMenu 1` opens the first window's submenu at launch.
+        // Harness: `-MochiWindowMenu 1` opens the first window's submenu at launch.
         .onAppear {
-            if UserDefaults.standard.bool(forKey: "SillWindowMenu"), let first = client.orderedWindows.first { menuFor = first.id }
+            if UserDefaults.standard.bool(forKey: "MochiWindowMenu"), let first = client.orderedWindows.first { menuFor = first.id }
         }
         #endif
     }
@@ -1761,8 +1781,8 @@ struct WindowLightsMenu: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(Palette.control)
                         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.1), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.5), radius: 16, y: 6)
+                            .strokeBorder(Palette.border, lineWidth: 1))
+                        .shadow(color: Palette.accent.opacity(0.16), radius: 16, y: 6)
                 )
                 .position(x: x, y: y)
                 .transition(.scale(scale: 0.8, anchor: below ? .top : .bottom).combined(with: .opacity))
@@ -1831,7 +1851,7 @@ private struct WindowThumbnail: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+                .strokeBorder(Palette.border, lineWidth: 1))
             // The active halo sits under the app badge: the badge's bar-coloured ring then reads as
             // cutting through the halo, instead of the halo slicing across the icon. It follows the
             // thumbnail's own radius so both sizes keep the same 3 pt gap.
@@ -1915,7 +1935,7 @@ struct AppDrawer: View {
     @ObservedObject var client: StreamClient
     @Binding var drawerOpen: Bool
     @State private var search = ""
-    /// The search field has the keyboard. Set only by DEBUG `-SillDrawerSearch` (ContentView's
+    /// The search field has the keyboard. Set only by DEBUG `-MochiDrawerSearch` (ContentView's
     /// contract); a tap focuses the field as before.
     @FocusState private var searchFocused: Bool
 
@@ -1954,8 +1974,8 @@ struct AppDrawer: View {
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Palette.bar))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
-        .shadow(color: .black.opacity(0.65), radius: 30, x: 0, y: 24)
+            .strokeBorder(Palette.border, lineWidth: 1))
+        .shadow(color: Palette.accent.opacity(0.14), radius: 24, x: 0, y: 24)
     }
 
     private var searchField: some View {
@@ -1983,11 +2003,11 @@ struct AppDrawer: View {
     }
 
     #if DEBUG
-    /// `-SillDrawerSearch <text>` (ContentView's contract): the drawer, once open, searches for that
+    /// `-MochiDrawerSearch <text>` (ContentView's contract): the drawer, once open, searches for that
     /// text with the keyboard up for its field, as a tap and typing would, so a photo shows what the
     /// keyboard leaves in view of the results.
     private func searchFromLaunchArguments() {
-        guard let query = UserDefaults.standard.string(forKey: "SillDrawerSearch") else { return }
+        guard let query = UserDefaults.standard.string(forKey: "MochiDrawerSearch") else { return }
         search = query
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             searchFocused = true
@@ -2084,7 +2104,7 @@ struct DrawerRow<Leading: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if let trailing {
                     // Whole, on one line, whatever the title's length: the title truncates instead
-                    // ("Not paired", "Update Sill" and "3 windows" hold a space).
+                    // ("Not paired", "Update Mochi" and "3 windows" hold a space).
                     Text(trailing)
                         .font(.system(size: 13))
                         .foregroundStyle(Palette.muted)

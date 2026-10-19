@@ -1,10 +1,12 @@
-# Releasing Sill
+> Adapted engineering notes. Product names have been updated for Mochi; historical release destinations and workflows are examples, not configured services. Use ../README.md for current build instructions and ../NOTICE for provenance.
 
-The order of work for putting the iOS app in the App Store and Sill for Mac on the web: part 1
+# Releasing Mochi
+
+The order of work for putting the iOS app in the App Store and Mochi for Mac on the web: part 1
 once, part 2 on every release. The texts and answers App Store Connect asks for, ready to paste,
 are in `docs/app-store-metadata.md` ("metadata §N" below). The pages are in `site/` (plain HTML,
-no build step), `Scripts/release.sh` makes the notarized Mac downloads (the disk image `Sill.dmg`,
-with `Scripts/make-dmg.sh`, and the zip `Sill.zip`), and `Scripts/release-ios.sh` the iOS app's
+no build step), `Scripts/release.sh` makes the notarized Mac downloads (the disk image `Mochi.dmg`,
+with `Scripts/make-dmg.sh`, and the zip `Mochi.zip`), and `Scripts/release-ios.sh` the iOS app's
 build for App Store Connect (TestFlight, below).
 
 ## Placeholders
@@ -14,17 +16,17 @@ came with the App Store Connect record (2026-09-26). Each lives in the places li
 
 | What | Now | Where |
 |---|---|---|
-| The site's domain | getsill.app (bought at Cloudflare 2026-09-25; live) | `site/CNAME`, the iOS app's links (`iOSClient/SillLinks.swift`), `README.md`, `docs/DEVELOPMENT.md`, `docs/app-store-metadata.md`, `Scripts/release.sh`, this file |
-| The support address | `support@getsill.app` (Cloudflare Email Routing, 2026-09-25) | `site/privacy.html`, `site/support.html`, `README.md`, `docs/app-store-metadata.md`, this file |
-| The current Mac build | none in the page: it links `releases/latest/download/Sill.dmg` and `Sill.dmg.sha256` (since Sill for Mac 0.3.1, PR #33), which GitHub redirects to the newest release; `release.sh --publish` uploads them under those names, with `Sill.zip` and `Sill.zip.sha256` beside them for older links | `site/download.html` (never edited per release, part 2) |
-| The App Store address | `https://apps.apple.com/app/id6816359860`, the record's Apple ID (PR #27, 2026-09-26). Live since 2026-10-08 (0.5; 0.5.1 since 2026-10-10), so a Mac's update notice, the site and the README link a page that answers | `iOSClient/SillLinks.swift` (`appStoreText`; `release-ios.sh` stops on a line that isn't an App Store address) |
+| The site's domain | example.invalid (bought at Cloudflare 2026-09-25; live) | `site/CNAME`, the iOS app's links (`iOSClient/MochiLinks.swift`), `README.md`, `docs/DEVELOPMENT.md`, `docs/app-store-metadata.md`, `Scripts/release.sh`, this file |
+| The support address | `support@example.invalid` (Cloudflare Email Routing, 2026-09-25) | `site/privacy.html`, `site/support.html`, `README.md`, `docs/app-store-metadata.md`, this file |
+| The current Mac build | none in the page: it links `releases/latest/download/Mochi.dmg` and `Mochi.dmg.sha256` (since Mochi for Mac 0.3.1, PR #33), which GitHub redirects to the newest release; `release.sh --publish` uploads them under those names, with `Mochi.zip` and `Mochi.zip.sha256` beside them for older links | `site/download.html` (never edited per release, part 2) |
+| The App Store address | `https://apps.apple.com/app/id6816359860`, the record's Apple ID (PR #27, 2026-09-26). Live since 2026-10-08 (0.5; 0.5.1 since 2026-10-10), so a Mac's update notice, the site and the README link a page that answers | `iOSClient/MochiLinks.swift` (`appStoreText`; `release-ios.sh` stops on a line that isn't an App Store address) |
 
 To change one, with the new value in place of `<address>` or `<domain>`: the first command
 changes the support address, the second the domain everywhere, the address's own included.
 
 ```
-grep -rl 'support@getsill\.app' site README.md docs/app-store-metadata.md docs/release-checklist.md | xargs sed -i '' 's#support@getsill\.app#<address>#g'
-grep -rl 'getsill\.app' site iOSClient docs Scripts README.md | xargs sed -i '' 's#getsill\.app#<domain>#g'
+grep -rl 'support@getmochi\.app' site README.md docs/app-store-metadata.md docs/release-checklist.md | xargs sed -i '' 's#support@getmochi\.app#<address>#g'
+grep -rl 'getmochi\.app' site iOSClient docs Scripts README.md | xargs sed -i '' 's#getmochi\.app#<domain>#g'
 ```
 
 ## Part 1: once
@@ -40,11 +42,11 @@ Only the Account Holder can make one.
 - [ ] Check: `security find-identity -v -p codesigning` lists
       `Developer ID Application: … (9B2KKVM937)`.
 - [ ] Back it up: Keychain Access › My Certificates › the certificate › Export… as a .p12 with a
-      password, kept outside the repo. Apple limits how many you can make. Sill's designated
+      password, kept outside the repo. Apple limits how many you can make. Mochi's designated
       requirement names the team, not the certificate, so a later certificate from the same team
       keeps everyone's Screen Recording and Accessibility permissions.
 - Your own Mac keeps its permissions as long as its builds stay Apple Development, so keep
-  `SILL_SIGN_IDENTITY` out of your shell profile (§2). A Developer ID build has a different
+  `MOCHI_SIGN_IDENTITY` out of your shell profile (§2). A Developer ID build has a different
   designated requirement: opening one on this Mac asks for both permissions again. Try each
   release on another Mac or user account instead (part 2).
 
@@ -55,41 +57,41 @@ Stored in your keychain under one profile name. Either:
 - [ ] An App Store Connect API key: App Store Connect › Users and Access › Integrations › App
       Store Connect API › Team Keys › +, access Developer. Download the .p8 (Apple lets you
       download it only once) and keep it outside the repo, then run
-      `xcrun notarytool store-credentials sill-notary --key <path to AuthKey_KEYID.p8> --key-id <KEYID> --issuer <issuer ID>`.
+      `xcrun notarytool store-credentials mochi-notary --key <path to AuthKey_KEYID.p8> --key-id <KEYID> --issuer <issuer ID>`.
 - [ ] Or an app-specific password: account.apple.com › Sign-In and Security › App-Specific
-      Passwords, then `xcrun notarytool store-credentials sill-notary --apple-id <your Apple ID> --team-id 9B2KKVM937`
+      Passwords, then `xcrun notarytool store-credentials mochi-notary --apple-id <your Apple ID> --team-id 9B2KKVM937`
       and paste the password when asked.
 
 Give both to the release command, never to your shell profile. `make-app.sh` signs every build
-with `SILL_SIGN_IDENTITY` when it is set, `--install` included, so an exported Developer ID
-identity would re-sign your everyday Sill.app, and macOS would ask for Screen Recording and
+with `MOCHI_SIGN_IDENTITY` when it is set, `--install` included, so an exported Developer ID
+identity would re-sign your everyday Mochi.app, and macOS would ask for Screen Recording and
 Accessibility again.
 
 ```
-SILL_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' SILL_NOTARY_PROFILE=sill-notary Scripts/release.sh --dry-run
+MOCHI_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' MOCHI_NOTARY_PROFILE=mochi-notary Scripts/release.sh --dry-run
 ```
 
-To type them once, put the two lines `export SILL_SIGN_IDENTITY=…` and
-`export SILL_NOTARY_PROFILE=sill-notary` in a file of their own, such as `~/.sill-release`, and
-run `(. ~/.sill-release && Scripts/release.sh --dry-run)`. The parentheses keep them out of your
+To type them once, put the two lines `export MOCHI_SIGN_IDENTITY=…` and
+`export MOCHI_NOTARY_PROFILE=mochi-notary` in a file of their own, such as `~/.mochi-release`, and
+run `(. ~/.mochi-release && Scripts/release.sh --dry-run)`. The parentheses keep them out of your
 shell.
 
 - [ ] Rehearse with that command: `--dry-run` checks the setup, builds, signs and zips, makes the
-      disk image `.build/Sill-<version>.dmg` signed with the same identity, and stops before
+      disk image `.build/Mochi-<version>.dmg` signed with the same identity, and stops before
       anything goes to Apple. When something is missing it says what, and builds nothing. It
       builds any commit and only warns that HEAD lacks the release's tag (part 2), which a real
       run refuses to build without. `spctl -a -vv -t open --context context:primary-signature
-      .build/Sill-<version>.dmg` then says `source=Unnotarized Developer ID`, which a real run's
+      .build/Mochi-<version>.dmg` then says `source=Unnotarized Developer ID`, which a real run's
       notarization turns into `Notarized Developer ID`. Last rehearsed 2026-09-27 on main at
-      643af6b (PRs #34 to #36 in), in a fresh worktree: exit 0 in 54 s, Sill 0.3.1 (391) for
-      arm64 with the hardened runtime, a timestamp and no entitlements, `Sill-0.3.1.zip` and
-      `Sill-0.3.1.dmg` of 3.0 MB each, the image's window and signature as make-dmg.sh checks
+      643af6b (PRs #34 to #36 in), in a fresh worktree: exit 0 in 54 s, Mochi 0.3.1 (391) for
+      arm64 with the hardened runtime, a timestamp and no entitlements, `Mochi-0.3.1.zip` and
+      `Mochi-0.3.1.dmg` of 3.0 MB each, the image's window and signature as make-dmg.sh checks
       them, no keychain prompt, and only the warning that HEAD lacks the tag.
 - [ ] Look at the disk image once, on this Mac (it isn't notarized, so nowhere else): double-click
-      `.build/Sill-<version>.dmg`. Its window should show Sill on the left and Applications on the
-      right with the arrow between them and "To install Sill, drag it to Applications." under it,
-      no toolbar or sidebar, all white to the window's edges, and the Sill disk in the Finder's
-      sidebar with Sill's icon. The window is sized for macOS 27's 32-point title bar
+      `.build/Mochi-<version>.dmg`. Its window should show Mochi on the left and Applications on the
+      right with the arrow between them and "To install Mochi, drag it to Applications." under it,
+      no toolbar or sidebar, all white to the window's edges, and the Mochi disk in the Finder's
+      sidebar with Mochi's icon. The window is sized for macOS 27's 32-point title bar
       (`DMGLayout.titleBar`): after a two-finger scroll inside it, everything should settle back
       where it was (a window a few points too short for its picture stays scrolled by those
       points). Switch the Mac to Dark Mode (System Settings › Appearance) and look again: the
@@ -102,20 +104,20 @@ shell.
 
 Preview it with `python3 -m http.server 8000 --directory site` and http://localhost:8000.
 
-Before it goes public (Saffsanity/sill went public on 2026-09-26, after the sweep of PR #24; the
+Before it goes public (example/mochi went public on 2026-09-26, after the sweep of PR #24; the
 unchecked items below were done that day or record what was decided):
 
-- [x] Done 2026-09-25: `support@getsill.app` reaches Noah's mailbox (Cloudflare Email Routing,
+- [x] Done 2026-09-25: `support@example.invalid` reaches Noah's mailbox (Cloudflare Email Routing,
       below). Apple wants real contact details behind the Support URL (guideline 1.5).
 - [ ] Remote Access: the pages describe it (PR #13, on main since ba91136). For a release without
       it, delete each block from `<!-- Remote Access` to `<!-- /Remote Access -->`. Then this must
       print nothing: `grep -n -i -E 'remote access|vpn|tailscale|port you forward' site/*.html |
-      grep -v '“Sill Remote Access”'` (that is the keychain item's name, which stays). Pairing and
+      grep -v '“Mochi Remote Access”'` (that is the keychain item's name, which stays). Pairing and
       the camera are no longer Remote Access's: every device pairs since pairing at home (PR #37),
       so the pages describe both outside the blocks.
 - [x] Done 2026-09-26: the repository is public with its LICENSE (Apache-2.0, since PR #15), and
       `index.html` says "Free and open source" with the GitHub link, `support.html` links the
-      issues, and the README shows its CI badge. Sill for Mac already says "free and open source"
+      issues, and the README shows its CI badge. Mochi for Mac already says "free and open source"
       (`NSHumanReadableCopyright` in `Packaging/Info.plist`, and the footnote in Settings,
       `SettingsPanes.swift`). If the repository is still private at the first Developer ID
       release, decide whether those wait too.
@@ -124,31 +126,31 @@ unchecked items below were done that day or record what was decided):
 Hosting: GitHub Pages. On GitHub Free it serves only public repositories, and from a branch it
 serves the root or `/docs`, never `/site`. So:
 
-- [x] Done 2026-09-25: the public repository Saffsanity/sill-site holds a copy of `site/`, with
+- [x] Done 2026-09-25: the public repository example/mochi-site holds a copy of `site/`, with
       Pages on (main, / root) and the custom domain set. Republish when `site/` changes, right
       after the release whose builds the change describes (part 2, the last item):
 - Words on main for a release not out yet are marked: the clipboard's (PR #78) between
   `<!-- Clipboard` and `<!-- /Clipboard -->`. A republish before that release (for words that hold
   for the builds already out, such as support.html's on a Mac asleep or restarted) deletes those
-  blocks in the sill-site copy after the rsync below (the perl line) and puts privacy.html's date
-  back to the one last published; then `grep -n -i clipboard ../sill-site/*.html` prints only
+  blocks in the mochi-site copy after the rsync below (the perl line) and puts privacy.html's date
+  back to the one last published; then `grep -n -i clipboard ../mochi-site/*.html` prints only
   privacy.html's log line ("which devices share the clipboard", true of the builds out too, as "what
   you copy" in its lede and "never what you copy" in both log lines are). The release that ships it
   deletes the markers in `site/` and keeps the words.
-- Once sill is public, it can serve the site itself: `git subtree push --prefix site origin gh-pages`,
-  then Settings › Pages › gh-pages, / (root). Retire sill-site then.
+- Once mochi is public, it can serve the site itself: `git subtree push --prefix site origin gh-pages`,
+  then Settings › Pages › gh-pages, / (root). Retire mochi-site then.
 
 ```
-git clone https://github.com/Saffsanity/sill-site.git ../sill-site     # once
-rsync -a --delete --exclude .git --exclude .github --exclude .nojekyll site/ ../sill-site/   # when the site changes
-perl -0pi -e 's/[ \t]*<!-- Clipboard:.*?<!-- \/Clipboard -->\n//gs' ../sill-site/*.html   # only before the clipboard's release
-git -C ../sill-site add -A && git -C ../sill-site commit -m "Update the site" && git -C ../sill-site push
+git clone https://github.com/example/mochi-site.git ../mochi-site     # once
+rsync -a --delete --exclude .git --exclude .github --exclude .nojekyll site/ ../mochi-site/   # when the site changes
+perl -0pi -e 's/[ \t]*<!-- Clipboard:.*?<!-- \/Clipboard -->\n//gs' ../mochi-site/*.html   # only before the clipboard's release
+git -C ../mochi-site add -A && git -C ../mochi-site commit -m "Update the site" && git -C ../mochi-site push
 ```
 
-sill-site has two files of its own that `site/` lacks, `.nojekyll` and `.github/FUNDING.yml` (its
+mochi-site has two files of its own that `site/` lacks, `.nojekyll` and `.github/FUNDING.yml` (its
 Sponsor button); the two excludes keep `--delete` off them.
 
-- [x] Domain, done 2026-09-25: getsill.app at Cloudflare, with A records to GitHub Pages
+- [x] Domain, done 2026-09-25: example.invalid at Cloudflare, with A records to GitHub Pages
       (185.199.108.153, .109, .110, .111), the matching AAAA records (2606:50c0:8000::153 to
       8003::153), and Email Routing forwarding support@ to Noah's mailbox. Since 2026-09-27 the
       records are DNS only (Cloudflare's proxy is off, so the site may serve video, which
@@ -158,8 +160,8 @@ Sponsor button); the two excludes keep `--delete` off them.
       Address Obfuscation no longer touch the site (the pages' `<!--email_off-->` comments stay,
       inert), and the domain is verified for the Saffsanity GitHub account (the TXT record
       `_github-pages-challenge-Saffsanity`, which stays).
-- [x] Done 2026-09-27: Enforce HTTPS is on in sill-site's Settings › Pages.
-- [ ] In a private window: https://getsill.app/, `/download`, `/privacy` and `/support` all
+- [x] Done 2026-09-27: Enforce HTTPS is on in mochi-site's Settings › Pages.
+- [ ] In a private window: https://example.invalid/mochi/, `/download`, `/privacy` and `/support` all
       load. GitHub Pages serves `privacy.html` at `/privacy`, the form the app and App Store
       Connect use.
 
@@ -167,19 +169,19 @@ Sponsor button); the two excludes keep `--delete` off them.
 
 Field by field, with the values and in the order App Store Connect asks: TestFlight §1 below.
 
-- [x] Done 2026-09-26: New App (metadata §1): iOS, bundle ID me.saffer.sill, SKU sill-ios. "Sill"
-      was taken, so the record was made as "Sill – Window Streaming" and is now "Sill – Mac
+- [x] Done 2026-09-26: New App (metadata §1): iOS, bundle ID dev.mochi, SKU mochi-ios. "Mochi"
+      was taken, so the record was made as "Mochi – Window Streaming" and is now "Mochi – Mac
       Streaming" (PR #28), Apple ID 6816359860.
 - [ ] App Information (metadata §2): category, content rights, the age rating (every answer
       none: 4+) and the EU trader status (Business › Agreements › Compliance › Digital Services
       Act).
 - [ ] Pricing and Availability (metadata §3): free; not available on Apple silicon Macs or
       Apple Vision Pro.
-- [ ] App Privacy (metadata §4): Privacy Policy URL `https://getsill.app/privacy`, and "No,
+- [ ] App Privacy (metadata §4): Privacy Policy URL `https://example.invalid/mochi/privacy`, and "No,
       we do not collect data from this app", published as Data Not Collected. The privacy policy
       and the app's privacy manifest say the same.
 - [ ] The first version, 0.5 (metadata §5 and §9): its Version field says 0.5 (App Store Connect
-      proposes 1.0), Support URL `https://getsill.app/support`, the description, keywords and
+      proposes 1.0), Support URL `https://example.invalid/mochi/support`, the description, keywords and
       screenshots.
 - [ ] For a build without Remote Access, paste the local-only keywords, What's New
       and review notes, leave out the description's "Away from home" bullet, and film no shot 11
@@ -189,13 +191,13 @@ Field by field, with the values and in the order App Store Connect asks: TestFli
       (`ITSAppUsesNonExemptEncryption`), so the uploaded build must not show Missing Compliance.
 - [ ] App Review Information (metadata §7 and §8): contact, notes, the video.
 - [ ] Version Release: Manually release this version, so an approval waits for the Mac download.
-- [x] Done 2026-09-26 (PR #27): `iOSClient/SillLinks.swift` gives
-      `https://apps.apple.com/app/id6816359860`, so a Mac that needs a newer Sill on the device
-      shows "Update Sill in the App Store" under its notice (TestFlight §2).
+- [x] Done 2026-09-26 (PR #27): `iOSClient/MochiLinks.swift` gives
+      `https://apps.apple.com/app/id6816359860`, so a Mac that needs a newer Mochi on the device
+      shows "Update Mochi in the App Store" under its notice (TestFlight §2).
 
 ### 5. The keychain provisioning profile (for the hardened identity keychain)
 
-Recommended before the first public build (docs/keychain-plan.md): it moves Sill's remote‑access
+Recommended before the first public build (docs/keychain-plan.md): it moves Mochi's remote‑access
 identity (the Mac's key, the trust list, Require pairing) from the legacy login keychain to the
 data‑protection keychain, which no other process can pre‑create or read. Without it, a release
 still builds and runs — it keeps the identity in the login keychain, and `make-app.sh --release`
@@ -203,25 +205,25 @@ and `release.sh` say so in the log. Landing it before the first public build mea
 write straight to the strong keychain and only your own dev Macs need the reset below.
 
 - [x] **Made 2026-09-27** on developer.apple.com (Certificates, Identifiers & Profiles): the App ID
-      "Sill for Mac", `me.saffer.sill.mac`, and the Developer ID provisioning profile **"Sill
+      "Mochi for Mac", `dev.mochi.mac`, and the Developer ID provisioning profile **"Mochi
       Developer ID"**, UUID `18e9509f-5498-4533-ba59-293461a61a0d`, platform macOS, team
       9B2KKVM937, all Macs, for the Developer ID Application certificate (SHA‑1 `42424F38…71D8D6`).
-      It grants `com.apple.application-identifier` `9B2KKVM937.me.saffer.sill.mac`,
+      It grants `com.apple.application-identifier` `9B2KKVM937.dev.mochi.mac`,
       `com.apple.developer.team-identifier` 9B2KKVM937 and `keychain-access-groups`
-      `9B2KKVM937.*`, which covers the group `9B2KKVM937.me.saffer.sill.mac`. It expires
+      `9B2KKVM937.*`, which covers the group `9B2KKVM937.dev.mochi.mac`. It expires
       **2044‑09‑22** (Apple issues them for 18 years).
 - Where it lives: `Packaging/embedded.provisionprofile` (git‑ignored; the copy make-app.sh embeds),
       backed up as `~/Library/Developer/Xcode/UserData/Provisioning Profiles/18e9509f-5498-4533-ba59-293461a61a0d.provisionprofile`
-      and as the download, `~/Downloads/Sill_Developer_ID.provisionprofile`; all three byte for
+      and as the download, `~/Downloads/Mochi_Developer_ID.provisionprofile`; all three byte for
       byte the same (SHA‑256 `4f9f99b0…d996ed65`). It holds no secret (Apple's signature, the
       public certificate, the entitlements), and the developer site downloads it again at any time.
-      `SILL_PROVISION_PROFILE` points make-app.sh at another copy.
+      `MOCHI_PROVISION_PROFILE` points make-app.sh at another copy.
 - Check: `security cms -D -i Packaging/embedded.provisionprofile` prints its plist; a Mac profile
       names the app `Entitlements › com.apple.application-identifier` (`application-identifier` is
       the iOS key, and an app signed with it is killed at launch: docs/keychain-plan.md §9b).
       `make-app.sh --release` prints `identity keychain: data-protection keychain (access group
-      9B2KKVM937.me.saffer.sill.mac)`. It refuses, before it writes an app that macOS would kill
-      at launch, a profile that doesn't grant what `Packaging/SillRelease.entitlements` asks for
+      9B2KKVM937.dev.mochi.mac)`. It refuses, before it writes an app that macOS would kill
+      at launch, a profile that doesn't grant what `Packaging/MochiRelease.entitlements` asks for
       (the application identifier, the team, the keychain group, and any entitlement added to
       that file later), doesn't list the certificate that signed the build, has expired, or
       doesn't decode. Proved with this profile on 2026‑09‑27 (docs/keychain-plan.md §9b): the
@@ -231,12 +233,12 @@ write straight to the strong keychain and only your own dev Macs need the reset 
       issued it ("Developer ID Certification Authority", 2012–2027). Apple says a build signed with a
       secure timestamp before then keeps launching (not something this Mac can test yet); a build
       after it needs a new Developer ID certificate (§1) and then the profile with it: on the
-      developer site, edit "Sill Developer ID" to use the new certificate (or make a new Developer ID
-      profile for `me.saffer.sill.mac`), download it, and replace
+      developer site, edit "Mochi Developer ID" to use the new certificate (or make a new Developer ID
+      profile for `dev.mochi.mac`), download it, and replace
       `Packaging/embedded.provisionprofile` and the backups. Until then make-app.sh refuses: "lists
       the certificates […], not the one that signed this build".
 - To make one again from nothing (another team, a lost account): on developer.apple.com register
-      the explicit App ID `me.saffer.sill.mac`, then a provisioning profile of type Developer ID
+      the explicit App ID `dev.mochi.mac`, then a provisioning profile of type Developer ID
       for macOS with that App ID and the Developer ID Application certificate, and download it. (The
       plan's other way, `xcodebuild -allowProvisioningUpdates` from a throwaway macOS target with
       Keychain Sharing, registers the same things from Xcode and may prompt for your Apple Account;
@@ -245,7 +247,7 @@ write straight to the strong keychain and only your own dev Macs need the reset 
       Apple Development certificate's name ends in HG877AGTQ7, your own member ID, not a team). The
       profile lists only the Developer ID certificate, so only the Developer ID build carries the
       profile and the access group; a development build (make-app.sh's default) must **not** — it
-      keeps `SillDebug.entitlements` and the login keychain. Signed with the Apple Development
+      keeps `MochiDebug.entitlements` and the login keychain. Signed with the Apple Development
       certificate, the same entitlements and this profile, a build is killed at launch (measured
       2026‑09‑27).
 - Profile validity: Gatekeeper checks the profile at **every launch**, so an expired one stops the
@@ -263,40 +265,40 @@ write straight to the strong keychain and only your own dev Macs need the reset 
       key and Mac ID on its first hardened launch (any device paired to it re‑pairs). Remote access
       is off by default and home pairing has not shipped publicly, so this is near zero. To start
       clean, delete the legacy items by hand — `for a in recognition-key paired-devices
-      require-pairing; do security delete-generic-password -s me.saffer.sill.remote -a $a; done`, and
-      the "Sill Remote Access" key in Keychain Access — and re‑pair. On a Mac you own, never in CI.
+      require-pairing; do security delete-generic-password -s dev.mochi.remote -a $a; done`, and
+      the "Mochi Remote Access" key in Keychain Access — and re‑pair. On a Mac you own, never in CI.
 
 ### 6. Homebrew
 
-Sill for Mac is a cask, `sill`, in Sill's own tap. Homebrew's main repository (homebrew/cask)
+Mochi for Mac is a cask, `mochi`, in Mochi's own tap. Homebrew's main repository (homebrew/cask)
 comes later, when the cask qualifies (below).
 
 - [x] Done 2026-10-14: the public repository
-      [Saffsanity/homebrew-sill](https://github.com/Saffsanity/homebrew-sill) is the tap
-      `saffsanity/sill`. It holds `Casks/sill.rb` (the release's `Sill.dmg` by its version and
+      [example/homebrew-mochi](https://github.com/example/homebrew-mochi) is the tap
+      `saffsanity/mochi`. It holds `Casks/mochi.rb` (the release's `Mochi.dmg` by its version and
       SHA-256, `depends_on arch: :arm64` and `depends_on macos: :sonoma` as the app's own
       Info.plist and binary say, a livecheck on the latest GitHub release, and a `zap` for
-      `~/Library/Logs/Sill` and `~/Library/Preferences/me.saffer.sill.mac.plist`, all Sill leaves
-      outside the keychain), a README and Sill's license. Its workflow is the one `brew tap-new`
+      `~/Library/Logs/Mochi` and `~/Library/Preferences/dev.mochi.mac.plist`, all Mochi leaves
+      outside the keychain), a README and Mochi's license. Its workflow is the one `brew tap-new`
       writes, for casks only (`brew test-bot --only-cleanup-before`, `--only-setup` and
       `--only-tap-syntax`: style, `readall` and `audit`), and `brew audit --cask --online
       --strict`, which downloads the image and checks its SHA-256, the version against the
       latest release and the minimum macOS against the app. It runs on pull requests and on
       pushes to main.
-- Installing: `brew install --cask saffsanity/sill/sill` taps it and trusts that one cask. Since
+- Installing: `brew install --cask saffsanity/mochi/mochi` taps it and trusts that one cask. Since
       Homebrew 6 a cask from a tap that isn't Homebrew's own loads only once it is trusted: after
-      `brew tap saffsanity/sill` alone, `brew install --cask sill` stops at "Refusing to load cask
-      saffsanity/sill/sill from untrusted tap saffsanity/sill" until `brew trust --cask
-      saffsanity/sill/sill`.
-- On this Mac, never install the cask into /Applications, where Sill.app runs: give `brew install
+      `brew tap saffsanity/mochi` alone, `brew install --cask mochi` stops at "Refusing to load cask
+      saffsanity/mochi/mochi from untrusted tap saffsanity/mochi" until `brew trust --cask
+      saffsanity/mochi/mochi`.
+- On this Mac, never install the cask into /Applications, where Mochi.app runs: give `brew install
       --cask` an `--appdir` of a scratch folder (Homebrew remembers it, and `brew uninstall`
       removes the app from there), and never `brew uninstall --zap`, which trashes the running
-      Sill's settings and log.
-- [ ] Homebrew's main repository, so that `brew install --cask sill` works with no tap. On
-      2026-10-14 `brew audit --cask --new --online --strict saffsanity/sill/sill` failed one rule
-      alone: "GitHub repository too new (22 days old, 30 days required)". Saffsanity/sill was made
+      Mochi's settings and log.
+- [ ] Homebrew's main repository, so that `brew install --cask mochi` works with no tap. On
+      2026-10-14 `brew audit --cask --new --online --strict saffsanity/mochi/mochi` failed one rule
+      alone: "GitHub repository too new (22 days old, 30 days required)". example/mochi was made
       on 2026-09-22, so that passes from 2026-10-22. Two more rules run only in homebrew/cask's
-      own checks: the homepage's domain must be 30 days old (getsill.app was registered on
+      own checks: the homepage's domain must be 30 days old (example.invalid was registered on
       2026-09-25, so from 2026-10-25), and a pull request from the repository's owner is a
       self-submission, which needs 90 forks, 90 watchers or 225 stars instead of 30, 30 or 75
       (on 2026-10-14: 228 stars, 8 forks, 1 watcher, so it holds only while the stars stay at 225
@@ -310,34 +312,34 @@ comes later, when the cask qualifies (below).
 - The steps ([How to Open a Homebrew Pull Request](https://docs.brew.sh/How-To-Open-a-Homebrew-Pull-Request)):
       fork Homebrew/homebrew-cask, `brew tap --force homebrew/cask`, add the fork as a remote of
       `$(brew --repository homebrew/cask)`, and on a branch from `origin/HEAD` copy the tap's cask to
-      `Casks/s/sill.rb` with the version then current. Run `brew audit --cask --new --online
-      --strict sill`, `brew style --fix --cask sill`, `HOMEBREW_NO_INSTALL_FROM_API=1 brew install
-      --cask --appdir=<a scratch folder> sill`, `brew uninstall --cask sill` and `brew lgtm
-      --online`; then one commit and a pull request, both titled "sill <version> (new cask)", the
+      `Casks/s/mochi.rb` with the version then current. Run `brew audit --cask --new --online
+      --strict mochi`, `brew style --fix --cask mochi`, `HOMEBREW_NO_INSTALL_FROM_API=1 brew install
+      --cask --appdir=<a scratch folder> mochi`, `brew uninstall --cask mochi` and `brew lgtm
+      --online`; then one commit and a pull request, both titled "mochi <version> (new cask)", the
       template's boxes ticked only for what was run.
-- Once it merges: in the tap, delete `Casks/sill.rb` and add `tap_migrations.json` with
-      `{ "sill": "homebrew/cask" }`, in one commit, "sill: migrate to homebrew/cask", so a Mac
+- Once it merges: in the tap, delete `Casks/mochi.rb` and add `tap_migrations.json` with
+      `{ "mochi": "homebrew/cask" }`, in one commit, "mochi: migrate to homebrew/cask", so a Mac
       that installed from the tap moves over at its next `brew update`. Then
       `site/download.html`, the README, the tap's README and part 2's Homebrew item say `brew
-      install --cask sill`.
+      install --cask mochi`.
 
 ## Part 2: every release
 
-- [ ] Versions: one number for both apps. From 0.5.1 on, a release's Sill for Mac and Sill for
+- [ ] Versions: one number for both apps. From 0.5.1 on, a release's Mochi for Mac and Mochi for
       iPhone and iPad carry the same version (Noah, 2026-10-09: "I want the release in the
       GitHub to line up with the app version, I want all versions to be 0.5.1"), set together
-      in the release's pull request: Sill for Mac's `CFBundleShortVersionString` in
+      in the release's pull request: Mochi for Mac's `CFBundleShortVersionString` in
       `Packaging/Info.plist`, and the iOS app's MARKETING_VERSION in both configurations of
-      `iOSClient/Sill.xcodeproj` (target Sill › General). The tag is `v` + that number, and the
-      GitHub Release, its assets (`.build/Sill-<version>.dmg`), TestFlight's version and the App
-      Store's all say it. The build numbers stay each app's own: Sill for Mac's is the commit
+      `iOSClient/Mochi.xcodeproj` (target Mochi › General). The tag is `v` + that number, and the
+      GitHub Release, its assets (`.build/Mochi-<version>.dmg`), TestFlight's version and the App
+      Store's all say it. The build numbers stay each app's own: Mochi for Mac's is the commit
       count, which make-app.sh stamps in; the iOS app's, CURRENT_PROJECT_VERSION in both
       configurations, keeps counting across versions (0.5 had builds 1 to 3, 0.5.1 starts at
       4), so a build number names one upload whatever its version. Put the device build's number
       in the same pull request as the version, so the tag below names the commit that both come
       from; `release-ios.sh --upload` then needs no `--bump`. Before 0.5.1 the two counted
-      apart (Sill for Mac 0.3.0, 0.3.1 and 0.4.0 beside Sill for iPhone and iPad 0.5; there was
-      never a Sill for Mac 0.4.1). A release that changes only one app is Noah's call: both at
+      apart (Mochi for Mac 0.3.0, 0.3.1 and 0.4.0 beside Mochi for iPhone and iPad 0.5; there was
+      never a Mochi for Mac 0.4.1). A release that changes only one app is Noah's call: both at
       the new number, or the other left at its last (nothing in the code compares the two).
 - [ ] A Mac release and a device build that need each other (a change to the home door or the wire
       that older builds on the other side can't follow): the release notes say which versions go
@@ -347,87 +349,87 @@ comes later, when the cask qualifies (below).
       processed), one device tries it from TestFlight against a Mac that runs a build of the same
       commit (processed is not tested, and the builds tried before it are usually Debug ones),
       the Mac release is published once that works, and the site is republished right after (the
-      Download button gives the newest release's Sill.dmg the moment it is published, so the
+      Download button gives the newest release's Mochi.dmg the moment it is published, so the
       pages' words should follow within minutes). A device with the new build and a Mac without
       its release is the gentler half of the gap: whichever side can say what to update must be
       the one that arrives first.
 - [ ] Tag that commit `v` + the release's version, both apps', and push the tag: `git tag -a v0.5.1
-      -m "Sill 0.5.1: …"` and `git push origin v0.5.1` for 0.5.1 (v0.3.0, v0.3.1 and v0.4.0 are
+      -m "Mochi 0.5.1: …"` and `git push origin v0.5.1` for 0.5.1 (v0.3.0, v0.3.1 and v0.4.0 are
       annotated tags on merge commits of main: v0.4.0 on its release pull request's, #41, v0.3.1 on
       #32's, and v0.3.0 on main's head that day, #20's). `make-app.sh --release` builds only the
       commit carrying it, and `release.sh --publish` refuses to start until origin's tag names that
-      commit, then makes the GitHub Release for it. Every Sill.app's update check reads the releases
-      of Saffsanity/sill alone (`UpdatePolicy.feed`) and compares the newest published one's tag
-      (not a draft, not a prerelease) with the version it runs: Saffsanity/sill is public (since
-      2026-09-26), so within a day of a release there every older Sill.app offers it (Check Now in
+      commit, then makes the GitHub Release for it. Every Mochi.app's update check reads the releases
+      of example/mochi alone (`UpdatePolicy.feed`) and compares the newest published one's tag
+      (not a draft, not a prerelease) with the version it runs: example/mochi is public (since
+      2026-09-26), so within a day of a release there every older Mochi.app offers it (Check Now in
       Settings › General asks at once). A private repository's releases answer the check with a 404,
-      and then no Sill.app offers anything.
+      and then no Mochi.app offers anything.
 - [ ] The release command from part 1 §2, without `--dry-run`. It builds, notarizes, staples and
       zips, checks a copy unpacked from the zip the way Gatekeeper will, then puts the stapled app
       in the disk image (`Scripts/make-dmg.sh`, signed with the same identity), has Apple notarize
       the image too, staples its ticket and checks it (`hdiutil verify`, `stapler validate`,
-      `spctl`'s open context as "Notarized Developer ID", and the Sill.app inside it as the zip's
+      `spctl`'s open context as "Notarized Developer ID", and the Mochi.app inside it as the zip's
       copy was checked). It prints both files' paths and SHA-256 and where Apple's two notary logs
-      are (`.build/Sill-<version>-notary-log.json`, `…-dmg-notary-log.json`). It warns when a log
+      are (`.build/Mochi-<version>-notary-log.json`, `…-dmg-notary-log.json`). It warns when a log
       lists issues: read them. Two submissions, so it waits for Apple twice.
-- [ ] Try the disk image as someone new to Sill would, on another Mac or a new macOS user account,
+- [ ] Try the disk image as someone new to Mochi would, on another Mac or a new macOS user account,
       with the quarantine flag a download sets: before publishing, the real run's
-      `.build/Sill-<version>.dmg` sent there by AirDrop (which sets it too); once published, the
+      `.build/Mochi-<version>.dmg` sent there by AirDrop (which sets it too); once published, the
       image downloaded from the release (a release published in one `--publish` run is tried
-      then). Open it, drag Sill to Applications in its window, open it, allow the permissions and
+      then). Open it, drag Mochi to Applications in its window, open it, allow the permissions and
       stream to a device. For 1.0 this is the reviewer's path: film it for the review video
       (metadata §8).
 - [ ] Publish: `Scripts/release.sh --publish` (with the same two variables), or a pushed tag with
       the release workflow ("Releasing from GitHub Actions" below), creates the GitHub Release
-      `v<version>` in Saffsanity/sill with the assets `Sill.dmg`, `Sill.dmg.sha256`, `Sill.zip` and
-      `Sill.zip.sha256`; before it builds, `--publish` checks that origin has the tag and that it
+      `v<version>` in example/mochi with the assets `Mochi.dmg`, `Mochi.dmg.sha256`, `Mochi.zip` and
+      `Mochi.zip.sha256`; before it builds, `--publish` checks that origin has the tag and that it
       names HEAD (the workflow's checkout is that tag). The site's Download button links
       `releases/latest/download/<name>`, which GitHub redirects to the newest release, so
-      download.html is never edited per release (its one exception, the move to Sill.dmg, is done:
+      download.html is never edited per release (its one exception, the move to Mochi.dmg, is done:
       below). Anonymous downloads and the update check need a public repository, which
-      Saffsanity/sill is since 2026-09-26. While it was private,
-      `SILL_RELEASE_REPO=Saffsanity/sill-site` was the way out (with download.html's three GitHub
-      links pointed there too); release.sh still warns that no Sill.app offers a release published
-      anywhere but Saffsanity/sill, so leave `SILL_RELEASE_REPO` unset (in `~/.sill-release` and as
+      example/mochi is since 2026-09-26. While it was private,
+      `MOCHI_RELEASE_REPO=example/mochi-site` was the way out (with download.html's three GitHub
+      links pointed there too); release.sh still warns that no Mochi.app offers a release published
+      anywhere but example/mochi, so leave `MOCHI_RELEASE_REPO` unset (in `~/.mochi-release` and as
       a repository variable). One way or the other for a version: pushing the tag, which a local
-      `--publish` needs first, also starts the release workflow. With `SILL_SIGN_IN_CI` set to
+      `--publish` needs first, also starts the release workflow. With `MOCHI_SIGN_IN_CI` set to
       `true` that run publishes the release, so don't also run `--publish` here (whichever comes
       second stops at "already exists"); without it the run only verifies (macOS minutes either
       way). Neither the variable nor any secret is set on 2026-09-27, so a pushed tag only verifies.
 - [ ] Release notes: `--publish` gives the release a one-line body (the version, the build and
       both SHA-256). Replace it with the release's notes, keeping that line as their last, with
-      `gh release edit v<version> --repo Saffsanity/sill --notes-file <notes>` (as for v0.3.0 and
+      `gh release edit v<version> --repo example/mochi --notes-file <notes>` (as for v0.3.0 and
       v0.3.1): what is new, the requirements, which device builds go with it, and how to check the
-      download. The update check opens the release's page, so this is what every Sill.app that
+      download. The update check opens the release's page, so this is what every Mochi.app that
       offers the update shows first.
 - [ ] Check what was published, signed out: `gh release view v<version> --json assets` lists the
-      four assets; `curl -sSLo` each of Sill.dmg and Sill.zip from
-      `https://github.com/Saffsanity/sill/releases/latest/download/<name>`, `shasum -c` against its
+      four assets; `curl -sSLo` each of Mochi.dmg and Mochi.zip from
+      `https://github.com/example/mochi/releases/latest/download/<name>`, `shasum -c` against its
       `.sha256`, `spctl -a -vv -t open --context context:primary-signature` on the image and
-      `spctl -a -vv -t exec` on the Sill.app inside each ("Notarized Developer ID"), and the app's
+      `spctl -a -vv -t exec` on the Mochi.app inside each ("Notarized Developer ID"), and the app's
       `CFBundleShortVersionString` and `CFBundleVersion`.
-- [ ] Homebrew: bump the cask once the release is published (its `Sill.dmg` must answer). In the
+- [ ] Homebrew: bump the cask once the release is published (its `Mochi.dmg` must answer). In the
       tap (part 1 §6), from a Mac that has it tapped and the cask trusted: `brew bump-cask-pr
-      --no-fork --version <version> --sha256 <SHA-256> saffsanity/sill/sill`, the SHA-256 the one in
-      the release's `Sill.dmg.sha256`, commits `sill <version>` on a branch of the tap, pushes it
+      --no-fork --version <version> --sha256 <SHA-256> saffsanity/mochi/mochi`, the SHA-256 the one in
+      the release's `Mochi.dmg.sha256`, commits `mochi <version>` on a branch of the tap, pushes it
       and opens a pull request there; merge it when its `brew test-bot` run is green (it downloads
       the image and checks the SHA-256, and the version against the latest release). By hand it is
-      the same two lines, `version` and `sha256` in `Casks/sill.rb`, a commit `sill <version>` and
-      a pull request. Then `brew update` and `brew upgrade --cask sill` offer the release. Once the
+      the same two lines, `version` and `sha256` in `Casks/mochi.rb`, a commit `mochi <version>` and
+      a pull request. Then `brew update` and `brew upgrade --cask mochi` offer the release. Once the
       cask is in Homebrew's main repository there is nothing to do: BrewTestBot opens the bump
       there within about three hours of the release, since the cask has a livecheck, and `brew
-      bump-cask-pr sill` refuses to; check that it merged (`brew info --cask sill`).
-- [x] Done 2026-09-27 with Sill for Mac 0.3.1 (PR #33; sill-site 39754b9): the download page
-      moved to Sill.dmg, after the release that carries it was published and its
-      `releases/latest/download/Sill.dmg` answered.
-- [ ] Keep `Sill.zip` in every release for now: `release.sh --publish` uploads it beside the disk
+      bump-cask-pr mochi` refuses to; check that it merged (`brew info --cask mochi`).
+- [x] Done 2026-09-27 with Mochi for Mac 0.3.1 (PR #33; mochi-site 39754b9): the download page
+      moved to Mochi.dmg, after the release that carries it was published and its
+      `releases/latest/download/Mochi.dmg` answered.
+- [ ] Keep `Mochi.zip` in every release for now: `release.sh --publish` uploads it beside the disk
       image, so the page's zip links keep working until it moves, and so do links that name
-      `Sill.zip` elsewhere (v0.3.0's notes, pages people saved). Every Sill.app's update check
+      `Mochi.zip` elsewhere (v0.3.0's notes, pages people saved). Every Mochi.app's update check
       opens the release's page, which lists both. Dropping the zip later is one line in
       `publish_release` (and its `.sha256`), for a release after the page has moved, never while
       download.html still links it.
-- [x] Done 2026-09-26 with v0.3.0 (sill-site e4046a1): the first release, and the site
-      republished right after Saffsanity/sill went public, so the button shows.
+- [x] Done 2026-09-26 with v0.3.0 (mochi-site e4046a1): the first release, and the site
+      republished right after example/mochi went public, so the button shows.
 - [ ] iOS: `Scripts/release-ios.sh --bump --upload` (a new version's first upload without `--bump`:
       the release's pull request sets its version and build number); TestFlight §4 below. With the
       build number already committed in the release's pull request (the first item),
@@ -442,35 +444,35 @@ comes later, when the cask qualifies (below).
 - [ ] Review notes (metadata §7): describe what is new in this version specifically (guideline
       2.3.1(a)), and What's New (metadata §5).
 - [ ] Submit for review with manual release. Release once the Mac download is live.
-- [ ] If what Sill does or keeps changed, update `site/` too, with the privacy policy's date, and
+- [ ] If what Mochi does or keeps changed, update `site/` too, with the privacy policy's date, and
       republish it (part 1 §3) right after the release is published: the pages describe the builds
       people can download, so words for a newer build wait for it, and words for the old one go
       with it. Since 2026-09-27 the published pages are v0.4.0's `site/`: privacy.html's line
       for the link report (PR #39, on main since 2026-10-08) and the away sentences of
       support.html and index.html go out with 0.5.1, with the privacy page's date.
 
-### The pairing release: Sill for Mac 0.4.0 with Sill for iPhone and iPad 0.5 (2)
+### The pairing release: Mochi for Mac 0.4.0 with Mochi for iPhone and iPad 0.5 (2)
 
 Pairing at home (PR #37) made the home door TLS 1.3 with pairing, and neither side works at home with
 the other's older release (docs/home-pairing-plan.md §3.4, read again against the code on
 2026-09-27):
 
 - A device from before it (TestFlight's 0.5 (1), from b37f47a, or a build of main before PR #37) at
-  Sill for Mac 0.4.0: it dials plain TCP, and the door fails the handshake (-9836) within
+  Mochi for Mac 0.4.0: it dials plain TCP, and the door fails the handshake (-9836) within
   milliseconds and closes. The device reads a TLS alert and EOF, shows its stream screen for a
-  moment (build 1 counts a session from TCP's ready), then "‹Mac› disconnected. Sill will reconnect
+  moment (build 1 counts a session from TCP's ready), then "‹Mac› disconnected. Mochi will reconnect
   when it can reach it." (for a Mac it never saved, "…It will reconnect when the Mac is back."),
   and its reconnect dials the listed row again at once, over and over, for as long as both run:
   nothing spaces the tries while the Mac is listed (its 2 s timer only covers a Mac that is not),
   so it can flicker several times a second. Nobody has watched it on a device; the plan's "every
   2 s" was read from that timer. No notice can reach it through a failed handshake. The Mac's menu
-  says "An iPhone or iPad Needs Sill Updated" from a source's third plain try within a minute, for
+  says "An iPhone or iPad Needs Mochi Updated" from a source's third plain try within a minute, for
   10 minutes; those tries never start the door's backoff, so the updated device gets in at once.
   Remote Access still serves it (the remote door was TLS already), away from home.
-- 0.5 (2), or any Release build from PR #37 on, at Sill for Mac 0.3.1 or earlier: that Sill
+- 0.5 (2), or any Release build from PR #37 on, at Mochi for Mac 0.3.1 or earlier: that Mochi
   advertises no `p` in its TXT record, a plain door, and a Release build never dials one (no
-  downgrade). The row reads "Update Sill", and a tap dials nothing and says "‹Mac› runs an older
-  Sill. Update Sill on the Mac to connect." The Mac sees nothing; its update check offers 0.4.0
+  downgrade). The row reads "Update Mochi", and a tap dials nothing and says "‹Mac› runs an older
+  Mochi. Update Mochi on the Mac to connect." The Mac sees nothing; its update check offers 0.4.0
   once it is published. A Debug build dials a plain door until it has seen that Mac speak TLS.
 - Both new: every device pairs once, with the code over Wi-Fi or by itself over the cable, one
   paired for Remote Access before too. Keychain hardening (PR #42) keeps a release's identity, trust
@@ -488,8 +490,8 @@ when asked):
 - [ ] The release's pull request (branch `release-next`): main merged in, the words that waited for
       the three (the site's pages, the README's How it works, the metadata, this section),
       `CFBundleShortVersionString` 0.4.0 and `CURRENT_PROJECT_VERSION` 2; CI green; merged.
-- [ ] Tag its merge commit: `git tag -a v0.4.0 -m "Sill for Mac 0.4.0: pairing at home"` and
-      `git push origin v0.4.0` (the release workflow verifies it: neither `SILL_SIGN_IN_CI` nor a
+- [ ] Tag its merge commit: `git tag -a v0.4.0 -m "Mochi for Mac 0.4.0: pairing at home"` and
+      `git push origin v0.4.0` (the release workflow verifies it: neither `MOCHI_SIGN_IN_CI` nor a
       secret is set).
 - [ ] From that commit, `Scripts/release-ios.sh --upload`: 0.5 (2) to App Store Connect. As soon as
       it shows under TestFlight, its What to Test (the build › Test Details): internal testers
@@ -500,28 +502,28 @@ when asked):
       commit adds only words and the two version numbers): the Release build's first session at
       the new door. If that fails, stop here, with only an internal TestFlight build out: fix,
       and the next device build is 3.
-- [ ] Stage the site: the tagged pages rsynced into the sill-site clone (part 1 §3) and committed,
+- [ ] Stage the site: the tagged pages rsynced into the mochi-site clone (part 1 §3) and committed,
       not pushed yet.
 - [ ] The keychain profile in place: `Packaging/embedded.provisionprofile` (git-ignored; part 1 §5,
-      "Sill Developer ID"). This release must be built with it: `make-app.sh --release`, which
+      "Mochi Developer ID"). This release must be built with it: `make-app.sh --release`, which
       release.sh runs, prints `identity keychain: data-protection keychain (access group
-      9B2KKVM937.me.saffer.sill.mac)` and release.sh "Identity keychain: data-protection". Without
+      9B2KKVM937.dev.mochi.mac)` and release.sh "Identity keychain: data-protection". Without
       it the build falls back to the login keychain and says so: stop, since the notes tell users
       their Mac's keys moved. The rehearsal (`release.sh --dry-run`) shows the same lines first.
 - [ ] Then `Scripts/release.sh --publish` from the same commit (part 1 §2's variables), the notes
       over its one-line body (`gh release edit v0.4.0 --notes-file …`), the site's commit pushed
-      at once (the Download button gives the new release's Sill.dmg the moment it is published,
+      at once (the Download button gives the new release's Mochi.dmg the moment it is published,
       and the pages should say what it does), and the check of what was published, signed out.
 - [ ] The Beta App Description (TestFlight §6).
-- [ ] Noah's devices: Sill from TestFlight on the iPad and the iPhone, then Sill for Mac from the
+- [ ] Noah's devices: Mochi from TestFlight on the iPad and the iPhone, then Mochi for Mac from the
       download on a Mac that runs a release (not the Apple Development build on this Mac, part 1
       §1). The iPad, paired for Remote Access on 2026-09-25, pairs once more (the Mac's new key,
       above), and so does the iPhone, with the code or over the cable; each reaches the Mac away
       from home once it has connected at home with Remote Access on.
 - [ ] Not before 0.4.0 is the download: 0.5 (2) to an external group or App Review, which use the
-      Sill for Mac that getsill.app/download gives.
+      Mochi for Mac that example.invalid/download gives.
 
-### The away release: Sill for Mac and Sill for iPhone and iPad 0.5.1 (4)
+### The away release: Mochi for Mac and Mochi for iPhone and iPad 0.5.1 (4)
 
 The first release with one version for both apps (the first item of part 2). It brings away from
 home (PR #39: a session through a VPN starts at Low · Standard, the Mac says when the link can't
@@ -531,9 +533,9 @@ the hinge, so the device build needs Xcode 27.1 or later). PRs #44 and #45, merg
 v0.4.0, went to TestFlight as 0.5 (3) and are in it too.
 
 Unlike the pairing release, neither half strands the other (docs/remote-bundle-plan.md, P13; read
-from the code, not tried on a device): Sill for Mac 0.5.1 serves 0.5 (2) and (3), which get the
+from the code, not tried on a device): Mochi for Mac 0.5.1 serves 0.5 (2) and (3), which get the
 away quality when away but no header line or link notice (kind 16's `away` and `link` are
-optional), and 0.5.1 (4) works with Sill for Mac 0.4.0, without the away quality or the notice
+optional), and 0.5.1 (4) works with Mochi for Mac 0.4.0, without the away quality or the notice
 (the move home goes to 0.4.0's TLS home door, pinned). So the order matters less: the device build
 first still gives App Store Connect its processing time while the Mac is notarized, and the notes,
 What to Test and What's New say which part needs which (the away quality and the link's notice
@@ -548,34 +550,34 @@ come from the Mac).
 - [ ] Before the tag: Noah's device test of away from home (CLAUDE.md, PR #39's P4 to P13). A
       claim it disproves comes out of the notes, What to Test, the site, the README and the
       metadata first. The privacy policy's "Last updated" is the day the site goes out.
-- [ ] Tag the merge commit: `git tag -a v0.5.1 -m "Sill 0.5.1: away from home"` and `git push
+- [ ] Tag the merge commit: `git tag -a v0.5.1 -m "Mochi 0.5.1: away from home"` and `git push
       origin v0.5.1` (the release workflow verifies it).
 - [ ] From the tag, `Scripts/release-ios.sh --upload`: 0.5.1 (4), the first build of the version
       0.5.1 (TestFlight opens the version by itself; App Store Connect's record needs nothing for
       that). Its What to Test as soon as it shows.
 - [ ] The keychain profile in place and the rehearsal, as for the pairing release
       (`release.sh --dry-run` says "identity keychain: data-protection keychain (access group
-      9B2KKVM937.me.saffer.sill.mac)" and Sill 0.5.1), then `Scripts/release.sh --publish` from
+      9B2KKVM937.dev.mochi.mac)" and Mochi 0.5.1), then `Scripts/release.sh --publish` from
       the tag, the notes over its one-line body (`gh release edit v0.5.1 --notes-file …`), the
       site republished at once, and the check of what was published, signed out.
 - [ ] The App Store, once 0.5 is Ready for Distribution (App Store Connect adds a version only
       then): the version 0.5.1 on the record (the + beside iOS App; 0.5's metadata is copied into
       it), its What's New (metadata §5), the description's Away bullet, the review notes'
       sentence (metadata §7), build 0.5.1 (4), and Submit for Review with manual release. Not
-      before Sill for Mac 0.5.1 is the download: App Review uses the Mac that
-      getsill.app/download gives, and the description's away claims are the Mac's.
+      before Mochi for Mac 0.5.1 is the download: App Review uses the Mac that
+      example.invalid/download gives, and the description's away claims are the Mac's.
 
 ## TestFlight
 
-Sill for iPhone and iPad reaches testers, then the App Store, through App Store Connect.
+Mochi for iPhone and iPad reaches testers, then the App Store, through App Store Connect.
 `Scripts/release-ios.sh` makes the build and uploads it from this Mac; the rest is App Store
 Connect's pages, in this order. The texts to paste are in `docs/app-store-metadata.md`. Nothing here
 costs money: uploads and TestFlight come with the Apple Developer Program.
 
 Already done (2026-09-26): the bundle ID is registered (Xcode's automatic signing made it; the
-developer portal calls it "XC me saffer sill"), and the first export, `release-ios.sh`'s rehearsal,
+developer portal calls it "XC me saffer mochi"), and the first export, `release-ios.sh`'s rehearsal,
 made a cloud-managed Apple Distribution certificate, whose private key stays with Apple, and the
-App Store profile "iOS Team Store Provisioning Profile: me.saffer.sill". Then the record (§1, "Sill
+App Store profile "iOS Team Store Provisioning Profile: dev.mochi". Then the record (§1, "Mochi
 – Mac Streaming", Apple ID 6816359860), its address in the app (§2, PR #27), and the first build,
 0.5 (1), uploaded with `release-ios.sh --upload` from b37f47a (§4), for internal testers.
 
@@ -586,10 +588,10 @@ App Store profile "iOS Team Store Provisioning Profile: me.saffer.sill". Then th
 | Field | Value |
 |---|---|
 | Platforms | iOS |
-| Name | `Sill – Mac Streaming`, with an en dash (metadata §2): "Sill" was taken, and the record, first "Sill – Window Streaming", has this name since 2026-09-26 (PR #28) |
+| Name | `Mochi – Mac Streaming`, with an en dash (metadata §2): "Mochi" was taken, and the record, first "Mochi – Window Streaming", has this name since 2026-09-26 (PR #28) |
 | Primary Language | English (U.S.) |
-| Bundle ID | `me.saffer.sill`, listed as "XC me saffer sill - me.saffer.sill" |
-| SKU | `sill-ios` (never shown; can't change) |
+| Bundle ID | `dev.mochi`, listed as "XC me saffer mochi - dev.mochi" |
+| SKU | `mochi-ios` (never shown; can't change) |
 | User Access | Full Access |
 
 - [ ] Then in the record. The reasons, and the long texts, are metadata §2 to §7; the version
@@ -599,10 +601,10 @@ App Store profile "iOS Team Store Provisioning Profile: me.saffer.sill". Then th
 |---|---|---|
 | App Information | Subtitle | `Remote display for your Mac` |
 | App Information | Category | Primary: Utilities. Secondary: Productivity |
-| App Information | Content Rights | No: Sill doesn't contain, show or access third-party content |
+| App Information | Content Rights | No: Mochi doesn't contain, show or access third-party content |
 | App Information | Age Ratings › Set Up Age Ratings | Every item none, No or unchecked, Unrestricted Web Access included; Age Categories and Override: Not Applicable; Age Suitability URL empty. Result: 4+ (metadata §2 has each step) |
 | App Information | Apple ID | Nothing to type: read the number for step 2 |
-| App Privacy | Privacy Policy URL | `https://getsill.app/privacy` |
+| App Privacy | Privacy Policy URL | `https://example.invalid/mochi/privacy` |
 | App Privacy | User Privacy Choices URL | Empty |
 | App Privacy | Data collection | Get Started › "No, we do not collect data from this app" › Save, then Publish: the page says Data Not Collected |
 | Pricing and Availability | Price | Free |
@@ -611,7 +613,7 @@ App Store profile "iOS Team Store Provisioning Profile: me.saffer.sill". Then th
 | Pricing and Availability | iPhone and iPad Apps on Apple Vision Pro | Uncheck "Make this app available on Apple Vision Pro" |
 | Business › Agreements › Compliance › Digital Services Act | Trader status | "This is not a trader account": free, no in-app purchase, no ads (metadata §2; look again when the tip jar comes; not legal advice) |
 | The version page, "1.0 Prepare for Submission" | Version | `0.5`. App Store Connect names a new app's first version 1.0, and only a build whose version matches can be added to it (for the App Store, not for TestFlight) |
-| The version page | Support URL, Marketing URL | `https://getsill.app/support`, `https://getsill.app` |
+| The version page | Support URL, Marketing URL | `https://example.invalid/mochi/support`, `https://example.invalid/mochi` |
 | Nowhere | Export compliance | Nothing to answer: the build says `ITSAppUsesNonExemptEncryption` NO (metadata §6), so no build waits on Missing Compliance |
 
 - [ ] If developer.apple.com or App Store Connect asks the Account Holder to accept an updated
@@ -623,11 +625,11 @@ App Store profile "iOS Team Store Provisioning Profile: me.saffer.sill". Then th
       as 6712345678), before the first upload:
 
 ```
-sed -i '' 's#APP_STORE_URL_PLACEHOLDER#https://apps.apple.com/app/id<Apple ID>#' iOSClient/SillLinks.swift
-git commit -m "iOS: the App Store address, for a Mac's update notice" iOSClient/SillLinks.swift
+sed -i '' 's#APP_STORE_URL_PLACEHOLDER#https://apps.apple.com/app/id<Apple ID>#' iOSClient/MochiLinks.swift
+git commit -m "iOS: the App Store address, for a Mac's update notice" iOSClient/MochiLinks.swift
 ```
 
-A Mac that needs a newer Sill on the device then shows "Update Sill in the App Store" under its
+A Mac that needs a newer Mochi on the device then shows "Update Mochi in the App Store" under its
 notice. The address answers only once the app is on the App Store. Until the line changes,
 `release-ios.sh` warns at every build, and a line that is neither the placeholder nor an App Store
 address (the number left out, say) stops it before it builds.
@@ -636,26 +638,26 @@ address (the number left out, say) stops it before it builds.
 
 - [ ] App Store Connect links the privacy policy and the support page, and the App Privacy answers
       and the policy must agree. Since the first Mac release (v0.3.0, 2026-09-26),
-      Saffsanity/sill-site holds all of `site/`, download.html included, and is republished with
+      example/mochi-site holds all of `site/`, download.html included, and is republished with
       part 1 §3's rsync (never with `--exclude download.html` any more, which kept that page at
-      "being prepared" until then; still without touching sill-site's own `.nojekyll` and
+      "being prepared" until then; still without touching mochi-site's own `.nojekyll` and
       `.github`), right after each release whose builds the pages describe (part 2, the last
       item). Since 2026-09-27 GitHub serves the pages itself (Cloudflare's proxy is off, part 1
-      §3), so getsill.app's copies are sill-site's byte for byte, `<!--email_off-->` comments
+      §3), so example.invalid's copies are mochi-site's byte for byte, `<!--email_off-->` comments
       included.
 
 ```
-rsync -a --delete --exclude .git --exclude .github --exclude .nojekyll site/ ../sill-site/
-git -C ../sill-site add -A && git -C ../sill-site commit -m "Update the site" && git -C ../sill-site push
+rsync -a --delete --exclude .git --exclude .github --exclude .nojekyll site/ ../mochi-site/
+git -C ../mochi-site add -A && git -C ../mochi-site commit -m "Update the site" && git -C ../mochi-site push
 ```
 
-- [ ] In a private window: https://getsill.app/privacy shows "Update check", and /support shows
-      support@getsill.app.
+- [ ] In a private window: https://example.invalid/mochi/privacy shows "Update check", and /support shows
+      support@example.invalid.
 
 ### 4. The build
 
 ```
-Scripts/release-ios.sh                    # archive, export .build/ios/export/Sill.ipa and check it; nothing uploaded
+Scripts/release-ios.sh                    # archive, export .build/ios/export/Mochi.ipa and check it; nothing uploaded
 Scripts/release-ios.sh --upload           # the same, then the upload: 0.5 (1), the first build (done 2026-09-26, b37f47a)
 Scripts/release-ios.sh --bump --upload    # every later upload of a version: the build number + 1, committed alone
 Scripts/release-ios.sh --privacy-report   # what the archive's privacy manifest declares, and its required-reason APIs
@@ -685,21 +687,21 @@ Scripts/release-ios.sh --privacy-report   # what the archive's privacy manifest 
   (new files count in `iOSClient` and `Sources/StreamProtocol`, which the build takes whole; a
   build that stays here only warns). `--bump` adds 1 to `CURRENT_PROJECT_VERSION` in both
   configurations and commits that alone; push it with the rest.
-  A new version: `MARKETING_VERSION` in both configurations (Xcode › target Sill › General ›
-  Version), the same number as Sill for Mac's (part 2's first item), committed in the release's
+  A new version: `MARKETING_VERSION` in both configurations (Xcode › target Mochi › General ›
+  Version), the same number as Mochi for Mac's (part 2's first item), committed in the release's
   pull request with the next build number: the numbers keep counting across versions (0.5.1's
   first build is 4, after 0.5's 1 to 3) rather than starting again at 1.
 - The rehearsal on 2026-09-26 (main at 6f2a934, whose iOS app is 150f781's): archive and export in
-  49 s, Sill.ipa 2.0 MB, signed "Apple Distribution: NOAH WILLIAM SAFFER (9B2KKVM937)" (cloud
+  49 s, Mochi.ipa 2.0 MB, signed "Apple Distribution: NOAH WILLIAM SAFFER (9B2KKVM937)" (cloud
   managed), the App Store profile until 2027-09-26, entitlements `application-identifier`
-  9B2KKVM937.me.saffer.sill, `beta-reports-active` true, get-task-allow false, no keychain or
-  Apple Account prompt. Again on 2026-09-27 (main at 643af6b, PRs #30 to #36 in): 46 s, Sill.ipa
+  9B2KKVM937.dev.mochi, `beta-reports-active` true, get-task-allow false, no keychain or
+  Apple Account prompt. Again on 2026-09-27 (main at 643af6b, PRs #30 to #36 in): 46 s, Mochi.ipa
   2.5 MB, the same certificate and profile, the required-reason APIs SystemBootTime
   (`systemUptime`) and UserDefaults, both declared, and only the known `StreamClient` capture
   warning in the archive's log.
 - The privacy report: xcodebuild has no command for it, so `--privacy-report` prints what the report
   is made of (the manifests, and the required-reason APIs the binary uses). The PDF: `open
-  .build/ios/Sill.xcarchive` (Xcode shows it in Window › Organizer › Archives), Control-click it ›
+  .build/ios/Mochi.xcarchive` (Xcode shows it in Window › Organizer › Archives), Control-click it ›
   Generate Privacy Report. Keep it with the App Privacy answers.
 - After an upload, App Store Connect processes the build, usually within half an hour, and emails
   when it's done; it then shows under TestFlight as 0.5 (1), or whichever build it is. Give it its
@@ -712,7 +714,7 @@ Scripts/release-ios.sh --privacy-report   # what the archive's privacy manifest 
       No review: every processed build reaches them. An external group can exist only once an
       internal one does.
 - [ ] On the iPad and an iPhone: TestFlight from the App Store, signed in with the tester's Apple
-      Account, then Sill from the invitation. A build stays installable for 90 days.
+      Account, then Mochi from the invitation. A build stays installable for 90 days.
 
 ### 6. Test Information, for external testers
 
@@ -721,20 +723,20 @@ Scripts/release-ios.sh --privacy-report   # what the archive's privacy manifest 
 | Field | Value |
 |---|---|
 | Beta App Description | The block below (665 characters) |
-| Feedback Email | `support@getsill.app` |
-| Marketing URL | `https://getsill.app` |
-| Privacy Policy URL | `https://getsill.app/privacy` |
-| Beta App Review Information: First Name, Last Name, Phone Number, Email | Noah, Saffer, a number starting with + and the country code, `support@getsill.app` (or your own; App Review only) |
+| Feedback Email | `support@example.invalid` |
+| Marketing URL | `https://example.invalid/mochi` |
+| Privacy Policy URL | `https://example.invalid/mochi/privacy` |
+| Beta App Review Information: First Name, Last Name, Phone Number, Email | Noah, Saffer, a number starting with + and the country code, `support@example.invalid` (or your own; App Review only) |
 | Sign-in required | Unchecked: there is no account |
 | Review Notes | Metadata §7's notes (under the 4,000 bytes allowed; §10 there has the count), Remote Access part included while the build has it |
 | License Agreement | Apple's standard: leave it |
 
 ```text
-Sill puts your Mac on your iPhone and iPad. Pick any window, or the whole desktop, and use it with touch, a trackpad, a keyboard or Apple Pencil.
+Mochi puts your Mac on your iPhone and iPad. Pick any window, or the whole desktop, and use it with touch, a trackpad, a keyboard or Apple Pencil.
 
-It needs the free Sill for Mac 0.4.0 or later, from https://getsill.app/download, on a Mac with Apple silicon and macOS 14 or later. Open Sill for Mac and allow Screen Recording and Accessibility, then open Sill on your iPhone or iPad on the same Wi-Fi and tap your Mac. The first time, pair: scan the code your Mac shows, or type it. Over a USB cable, it pairs by itself.
+It needs the free Mochi for Mac 0.4.0 or later, from https://example.invalid/mochi/download, on a Mac with Apple silicon and macOS 14 or later. Open Mochi for Mac and allow Screen Recording and Accessibility, then open Mochi on your iPhone or iPad on the same Wi-Fi and tap your Mac. The first time, pair: scan the code your Mac shows, or type it. Over a USB cable, it pairs by itself.
 
-To send feedback, take a screenshot while you use Sill, or use Send Beta Feedback in TestFlight. Write to support@getsill.app for anything else.
+To send feedback, take a screenshot while you use Mochi, or use Send Beta Feedback in TestFlight. Write to support@example.invalid for anything else.
 ```
 
 ### 7. External testers and Beta App Review
@@ -742,9 +744,9 @@ To send feedback, take a screenshot while you use Sill, or use Send Beta Feedbac
 - [ ] TestFlight › External Testing › + : a group such as `Beta`. Add Builds › the newest build of
       the version, and its What to Test (metadata §5). Submit Review.
 - Beta App Review looks at the first build of a version in full (later builds of the same version
-  may not need it), up to six builds a day. It needs what App Review needs: Sill for Mac
-  downloadable at https://getsill.app/download (it is, since v0.3.0 on 2026-09-26; the build
-  under review must work with the Sill for Mac that page offers), the notes, and the contact.
+  may not need it), up to six builds a day. It needs what App Review needs: Mochi for Mac
+  downloadable at https://example.invalid/mochi/download (it is, since v0.3.0 on 2026-09-26; the build
+  under review must work with the Mochi for Mac that page offers), the notes, and the contact.
   Test internally first: that needs none of it.
 - Once approved: invite testers by email, or turn on a public link (Open to Anyone, with a tester
   limit if you like, up to 10,000).
@@ -763,8 +765,8 @@ screens of each set, the capture commands and what may appear in the picture. Th
 - [ ] On a fresh install the first-run tour dims the screen about a second after the Mac's
       picture, unless something is touched: take it once (or click the picture at once) before
       the first screenshot.
-- [ ] Never `simctl io … recordVideo` while Sill.app streams: the recorder takes the video encoder
-      from Sill (screenshots are fine).
+- [ ] Never `simctl io … recordVideo` while Mochi.app streams: the recorder takes the video encoder
+      from Mochi (screenshots are fine).
 - [ ] Upload them on the version page (iPhone 6.9" Display, iPad 13" Display) with the rest of
       metadata §5, §7 and §8 when you submit.
 
@@ -777,31 +779,31 @@ until the `xcode-27` image has a 27.1 that is not a beta (in October 2026 it had
 `Xcode_27.1_beta.app`, 27A9269), every run stops at that refusal. Upload from this Mac meanwhile.
 
 - Without the key below: `release-ios.sh --unsigned`. The Release archive is built without
-  signing and checked; `Sill-<version>-<build>-unsigned.ipa` is the artifact for 14 days, to look
+  signing and checked; `Mochi-<version>-<build>-unsigned.ipa` is the artifact for 14 days, to look
   inside only. No secret is read.
 - With the key: `release-ios.sh --sign-at-export`. The runner has no development certificate, so
   the archive is built without signing, and the export signs it through the key with the same
   cloud-managed certificate as here and the App Store profile, which Xcode makes or fetches. No
   certificate, private key or profile is kept in the repository's secrets: an archive made without
   signing exports with the same entitlements (tried here on 2026-09-26 with the Apple Account;
-  through a key, not yet). `Sill-<version>-<build>.ipa` is the artifact for 14 days. Nothing is
+  through a key, not yet). `Mochi-<version>-<build>.ipa` is the artifact for 14 days. Nothing is
   uploaded, unless:
-- the repository variable `SILL_TESTFLIGHT_IN_CI` is `true`: the run also uploads, as
+- the repository variable `MOCHI_TESTFLIGHT_IN_CI` is `true`: the run also uploads, as
   `--upload` does here. It takes the committed build number, so bump it here (`--bump`), push,
   then run the workflow.
 
 | Name | Kind | What it holds |
 |---|---|---|
-| `SILL_TESTFLIGHT_KEY_ID` | secret | The Key ID of an App Store Connect API key with the Admin role (Users and Access › Integrations › App Store Connect API › Team Keys › +). Cloud signing refuses any other role. |
-| `SILL_TESTFLIGHT_ISSUER_ID` | secret | The Issuer ID above the keys (the same for every key of the team). |
-| `SILL_TESTFLIGHT_KEY_P8` | secret | The key file `AuthKey_<Key ID>.p8`, in base64. Apple lets you download it once. |
-| `SILL_TESTFLIGHT_IN_CI` | variable | `true` also uploads. Absent or anything else: export only. |
+| `MOCHI_TESTFLIGHT_KEY_ID` | secret | The Key ID of an App Store Connect API key with the Admin role (Users and Access › Integrations › App Store Connect API › Team Keys › +). Cloud signing refuses any other role. |
+| `MOCHI_TESTFLIGHT_ISSUER_ID` | secret | The Issuer ID above the keys (the same for every key of the team). |
+| `MOCHI_TESTFLIGHT_KEY_P8` | secret | The key file `AuthKey_<Key ID>.p8`, in base64. Apple lets you download it once. |
+| `MOCHI_TESTFLIGHT_IN_CI` | variable | `true` also uploads. Absent or anything else: export only. |
 
 ```
-gh secret set SILL_TESTFLIGHT_KEY_ID
-gh secret set SILL_TESTFLIGHT_ISSUER_ID
-base64 -i AuthKey_ABC123DEFG.p8 | gh secret set SILL_TESTFLIGHT_KEY_P8
-gh variable set SILL_TESTFLIGHT_IN_CI --body true     # after an export-only run has passed
+gh secret set MOCHI_TESTFLIGHT_KEY_ID
+gh secret set MOCHI_TESTFLIGHT_ISSUER_ID
+base64 -i AuthKey_ABC123DEFG.p8 | gh secret set MOCHI_TESTFLIGHT_KEY_P8
+gh variable set MOCHI_TESTFLIGHT_IN_CI --body true     # after an export-only run has passed
 ```
 
 An Admin key can do nearly all an Admin can in App Store Connect, managing users included, so it
@@ -823,13 +825,13 @@ encoder. `.github/workflows/release.yml` runs when a tag `v<version>` is pushed,
 ### Why the download link did not work before 2026-09-26
 
 - There was no release until v0.3.0, published on 2026-09-26. The site's button links
-  `releases/latest/download/Sill.zip`, which GitHub redirects to the newest release's file of that
+  `releases/latest/download/Mochi.zip`, which GitHub redirects to the newest release's file of that
   name.
 - Until 2026-09-26 the repository was private, and GitHub serves a private repository's release
   files only to people signed in with access to it, so everyone else got a 404 even once v0.3.0
-  existed. Saffsanity/sill is public now (the decision at launch: the history stays as it is), so
-  the link works; the alternative, publishing in the public Saffsanity/sill-site with
-  `SILL_RELEASE_REPO` and `SILL_RELEASE_TOKEN`, was not needed.
+  existed. example/mochi is public now (the decision at launch: the history stays as it is), so
+  the link works; the alternative, publishing in the public example/mochi-site with
+  `MOCHI_RELEASE_REPO` and `MOCHI_RELEASE_TOKEN`, was not needed.
 
 ### What a tag does
 
@@ -838,18 +840,18 @@ encoder. `.github/workflows/release.yml` runs when a tag `v<version>` is pushed,
       be on a commit that has `release.yml`, so nothing before this change. `Scripts/release.sh
       --check-tag` stops the run when the tag and the version differ, or the tag names another
       commit.
-- Without the variable `SILL_SIGN_IN_CI`: verify only. The run checks the tag, runs the pure
-  checks, builds Sill.app with `Scripts/make-app.sh` (signed ad hoc, as the runner has no identity),
+- Without the variable `MOCHI_SIGN_IN_CI`: verify only. The run checks the tag, runs the pure
+  checks, builds Mochi.app with `Scripts/make-app.sh` (signed ad hoc, as the runner has no identity),
   fails if the icon is missing, makes the disk image from it with `Scripts/make-dmg.sh` (ad hoc
-  too), and keeps `Sill-<version>-adhoc.zip` and `Sill-<version>-adhoc.dmg` as the run's two
+  too), and keeps `Mochi-<version>-adhoc.zip` and `Mochi-<version>-adhoc.dmg` as the run's two
   artifacts for 14 days. They are for trying out only (the image, to look at its window): not
   Developer ID, not notarized. Nothing is published.
-- With `SILL_SIGN_IN_CI` set to `true`: sign and publish. The same checks, then the Developer ID
+- With `MOCHI_SIGN_IN_CI` set to `true`: sign and publish. The same checks, then the Developer ID
   certificate goes into a temporary keychain with a random password, the notary key into a profile
   in it (`notarytool store-credentials`, which validates the key with Apple first), and
-  `Scripts/release.sh --publish` runs with `SILL_RELEASE_TAG` set: it builds, notarizes, staples,
+  `Scripts/release.sh --publish` runs with `MOCHI_RELEASE_TAG` set: it builds, notarizes, staples,
   checks a copy unpacked from the zip the way Gatekeeper will, makes, notarizes, staples and checks
-  the disk image, and creates the GitHub Release with `Sill.dmg`, `Sill.zip` and their `.sha256`
+  the disk image, and creates the GitHub Release with `Mochi.dmg`, `Mochi.zip` and their `.sha256`
   files. Apple's answers and logs for both submissions (the zip's and the image's) are the run's
   artifact `notary-v<version>` for 30 days: when the job's log says a notary log lists issues, read
   them there, since the run has published the release by then. (The step needs
@@ -871,35 +873,35 @@ Settings › Secrets and variables › Actions, or `gh` from the repository's fo
 ever goes in the repository, a commit message or a shell profile.
 
 Until the environment below exists, sign on this Mac instead (`Scripts/release.sh --publish`, with
-`SILL_SIGN_IN_CI` unset), as v0.3.0 and v0.3.1 were. Repository secrets reach any workflow on any
+`MOCHI_SIGN_IN_CI` unset), as v0.3.0 and v0.3.1 were. Repository secrets reach any workflow on any
 branch or tag pushed here (never a fork's pull request), and an environment, which can keep them to
-release runs alone, needs a public repository on GitHub Free, which Saffsanity/sill is since
-2026-09-26. Before `SILL_SIGN_IN_CI` goes on: an environment `release` that only tags `v*` may
+release runs alone, needs a public repository on GitHub Free, which example/mochi is since
+2026-09-26. Before `MOCHI_SIGN_IN_CI` goes on: an environment `release` that only tags `v*` may
 deploy to, with Noah as its required reviewer, holds the five secrets (`gh secret set NAME --env
 release`), and release.yml's publish job names it (`environment: release`).
 
 | Name | Kind | What it holds |
 |---|---|---|
-| `SILL_SIGN_IN_CI` | variable | `true` turns on signing and publishing. Absent or anything else: verify only. |
-| `SILL_DEVELOPER_ID_P12` | secret | The Developer ID Application certificate with its private key, exported as a .p12 (part 1 §1), in base64. |
-| `SILL_DEVELOPER_ID_P12_PASSWORD` | secret | The password given when exporting that .p12. |
-| `SILL_NOTARY_KEY_ID` | secret | The App Store Connect API key's Key ID (part 1 §2, the API key). |
-| `SILL_NOTARY_ISSUER_ID` | secret | The Issuer ID shown above the keys in App Store Connect. |
-| `SILL_NOTARY_KEY_P8` | secret | The key file `AuthKey_<Key ID>.p8`, in base64. |
-| `SILL_RELEASE_REPO` | variable, optional | `owner/name` of another repository to publish in, such as `Saffsanity/sill-site`. Default: this one, with the run's own token. |
-| `SILL_RELEASE_TOKEN` | secret, optional | Only with `SILL_RELEASE_REPO`: a fine-grained personal access token for that one repository, with Contents read and write. |
+| `MOCHI_SIGN_IN_CI` | variable | `true` turns on signing and publishing. Absent or anything else: verify only. |
+| `MOCHI_DEVELOPER_ID_P12` | secret | The Developer ID Application certificate with its private key, exported as a .p12 (part 1 §1), in base64. |
+| `MOCHI_DEVELOPER_ID_P12_PASSWORD` | secret | The password given when exporting that .p12. |
+| `MOCHI_NOTARY_KEY_ID` | secret | The App Store Connect API key's Key ID (part 1 §2, the API key). |
+| `MOCHI_NOTARY_ISSUER_ID` | secret | The Issuer ID shown above the keys in App Store Connect. |
+| `MOCHI_NOTARY_KEY_P8` | secret | The key file `AuthKey_<Key ID>.p8`, in base64. |
+| `MOCHI_RELEASE_REPO` | variable, optional | `owner/name` of another repository to publish in, such as `example/mochi-site`. Default: this one, with the run's own token. |
+| `MOCHI_RELEASE_TOKEN` | secret, optional | Only with `MOCHI_RELEASE_REPO`: a fine-grained personal access token for that one repository, with Contents read and write. |
 
 The workflow takes only an App Store Connect API key, not the app-specific password that part 1 §2
-also allows. The keychain, its password, the profile name `sill-notary` and the token for this
+also allows. The keychain, its password, the profile name `mochi-notary` and the token for this
 repository's own release are made by each run and gone at its end.
 
 ```
-base64 -i <backup folder>/DeveloperID.p12 | gh secret set SILL_DEVELOPER_ID_P12
-gh secret set SILL_DEVELOPER_ID_P12_PASSWORD        # asks for the value; nothing lands in the shell history
-gh secret set SILL_NOTARY_KEY_ID
-gh secret set SILL_NOTARY_ISSUER_ID
-base64 -i <backup folder>/AuthKey_ABC123DEFG.p8 | gh secret set SILL_NOTARY_KEY_P8
-gh variable set SILL_SIGN_IN_CI --body true         # after a verify-only run has passed
+base64 -i <backup folder>/DeveloperID.p12 | gh secret set MOCHI_DEVELOPER_ID_P12
+gh secret set MOCHI_DEVELOPER_ID_P12_PASSWORD        # asks for the value; nothing lands in the shell history
+gh secret set MOCHI_NOTARY_KEY_ID
+gh secret set MOCHI_NOTARY_ISSUER_ID
+base64 -i <backup folder>/AuthKey_ABC123DEFG.p8 | gh secret set MOCHI_NOTARY_KEY_P8
+gh variable set MOCHI_SIGN_IN_CI --body true         # after a verify-only run has passed
 ```
 
 `<backup folder>` is where part 1 keeps the exported .p12 and .p8: outside the repository (these
@@ -910,18 +912,18 @@ anyway.
 ### Rotating them
 
 - The Developer ID certificate, before it expires or if its key may have leaked: make a new one
-  (part 1 §1), export it with a new password, and set both `SILL_DEVELOPER_ID_P12` and
-  `SILL_DEVELOPER_ID_P12_PASSWORD` again. Sill's designated requirement names the team, not the
+  (part 1 §1), export it with a new password, and set both `MOCHI_DEVELOPER_ID_P12` and
+  `MOCHI_DEVELOPER_ID_P12_PASSWORD` again. Mochi's designated requirement names the team, not the
   certificate, so users keep their permissions. Revoke the old certificate at developer.apple.com
   only if the key leaked: revoking it can also stop copies already signed with it from opening.
 - The notary key: in App Store Connect › Users and Access › Integrations › App Store Connect API,
-  make a new key, set the three `SILL_NOTARY_*` secrets, run a release (or `store-credentials`
+  make a new key, set the three `MOCHI_NOTARY_*` secrets, run a release (or `store-credentials`
   locally) to see it validate, then revoke the old key there; a revoked key stops working at once.
-- `SILL_RELEASE_TOKEN`: fine-grained tokens expire. Make a new one before that (github.com ›
+- `MOCHI_RELEASE_TOKEN`: fine-grained tokens expire. Make a new one before that (github.com ›
   Settings › Developer settings › Personal access tokens), set it, and delete the old one.
 - After a suspected leak of any of them: revoke first, then replace, then look at the repository's
   Actions runs and releases for anything you didn't start.
-- Turning signing off again: delete the variable `SILL_SIGN_IN_CI` (or set it to `false`). The
+- Turning signing off again: delete the variable `MOCHI_SIGN_IN_CI` (or set it to `false`). The
   secrets can stay.
 
 ### What it costs
@@ -930,9 +932,9 @@ GitHub's prices on 2026-09-25 ([runner pricing](https://docs.github.com/en/billi
 [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions),
 [hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)):
 
-- A public repository, as Saffsanity/sill is since 2026-09-26: nothing. Standard GitHub-hosted
+- A public repository, as example/mochi is since 2026-09-26: nothing. Standard GitHub-hosted
   runners, `xcode-27` included, are free and unlimited there.
-- A private repository, as Saffsanity/sill was until then: each run's minutes count against the
+- A private repository, as example/mochi was until then: each run's minutes count against the
   account's included minutes (2,000 a month on GitHub Free, 3,000 on Pro). Count a macOS minute
   as about ten of them: GitHub's billing pages no longer print the multiplier table they used to
   (macOS 10, Linux 1), but they still speak of minute multipliers, and today's prices keep that
@@ -965,11 +967,11 @@ GitHub's prices on 2026-09-25 ([runner pricing](https://docs.github.com/en/billi
 ### The runner image
 
 All three workflows run on `xcode-27`, the newest macOS image GitHub offers and the only one with
-Xcode 27, which Sill is built with: macOS 27.0 with Xcode 27.0 (the default), 27.1 and a 27.2 beta
+Xcode 27, which Mochi is built with: macOS 27.0 with Xcode 27.0 (the default), 27.1 and a 27.2 beta
 in September 2026 (image 20261006.0244: `Xcode_27.app` 27.0 27A266a, `Xcode_27.1_beta.app` 27.1
 27A9269, `Xcode_27.2_beta_2.app` 27.2 27B5028f). GitHub calls it a public preview, so jobs can wait in a queue longer and
 software on it can change. `macos-latest` is macOS 26 with Xcode 26.0.1 to 26.6, and `macos-15`
-has Xcode 16.0 to 16.4 and 26.0.1 to 26.3; Sill has not been built with those. A step
+has Xcode 16.0 to 16.4 and 26.0.1 to 26.3; Mochi has not been built with those. A step
 (`.github/actions/select-xcode`, asked for version 27) selects the newest Xcode 27 that is not a
 beta and prints `xcodebuild -version`: on today's image that is Xcode 27.0 (27A266a), since the
 image installs 27.1 under a name that says beta. CI's build job takes it for the Mac side (SwiftPM,

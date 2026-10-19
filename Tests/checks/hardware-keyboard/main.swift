@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // HardwareKeyboardPolicy (iOSClient/HardwareKeyboardPolicy.swift) on its own: when the stream's input
 // view holds the keyboard for a hardware keyboard, when the person's own keyboard is up, and what each
 // event does (docs/hardware-keyboard-plan.md §2). Put through a model of what InputOverlayProxy and
@@ -256,7 +257,7 @@ do {
     t.apply(.toggle)
     check("again with the drawer still open: let go (the keyboard's hold waits for it to close)", t.actions == [.letGo])
 }
-// setKeyboard(shown: true) over the keyboard's hold (DEBUG -SillKeyboard 1, a restore): the person's.
+// setKeyboard(shown: true) over the keyboard's hold (DEBUG -MochiKeyboard 1, a restore): the person's.
 do {
     var s = run([.join])
     s.actions = []

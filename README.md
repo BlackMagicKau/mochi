@@ -1,206 +1,296 @@
-# Sill
+# Mochi
 
-Any window from your Mac, on your iPhone and iPad.
+<p align="center">
+  <img src="docs/images/mochi-banner.png" width="100%" alt="Mochi — Your Mac, a little closer. A matcha dumpling beside a Mac window connected to a phone.">
+</p>
 
-Sill shows a window from your Mac, or the whole desktop, on your iPhone or
-iPad. You use it there with touch, a trackpad, a keyboard or Apple Pencil.
-Sill for Mac captures the window, encodes it as HEVC video and sends it to the
-Sill app on your device. Your taps, clicks, scrolls and keys go back to your
-Mac. Your Mac and your device connect on the same network, over a USB cable,
-with Direct Wireless Connection when they share no network, or through your
-own VPN, such as Tailscale, with Remote Access. There is no account and no
-server in between.
+<p align="center"><strong>Native Swift · Mac + iPhone + iPad · Matcha and cream</strong></p>
 
-**[getsill.app](https://getsill.app)** ·
-[Download for Mac](https://getsill.app/download) ·
-[Support](https://getsill.app/support) ·
-[Privacy](https://getsill.app/privacy) ·
-[Terms](https://getsill.app/terms)
+Mochi streams a Mac window or desktop to your iPhone or iPad and lets you control it with touch, a trackpad, and a keyboard. It pairs a native Swift app with a matcha-and-cream interface and a friendly dumpling character.
 
-[![CI](https://github.com/Saffsanity/sill/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Saffsanity/sill/actions/workflows/ci.yml)
+The iPhone layout gives the streamed app most of the screen. Open controls when you need them, switch between Mac apps, or zoom in to read text.
 
-[![Download on the App Store](https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83)](https://apps.apple.com/app/id6816359860)
+Mochi is a development project. Build and install it from source; this repository does not provide an App Store app, a notarized Mac download, or a hosted remote-access service.
 
-Sill for Mac is a free, notarized download from
-[getsill.app](https://getsill.app/download); with [Homebrew](https://brew.sh),
-`brew install --cask saffsanity/sill/sill` installs the same download from
-Sill's own [tap](https://github.com/Saffsanity/homebrew-sill). Sill for iPhone
-and iPad is free on the [App Store](https://apps.apple.com/app/id6816359860),
-and you can also build it from source (below).
+[Set up Mochi](#set-up-mochi) · [Choose a connection](#choose-a-connection) · [Use the iPhone controls](#use-the-iphone-controls) · [Troubleshoot](docs/TROUBLESHOOTING.md)
 
-## Screenshots
+## A closer look
 
-These are the iPad screenshots from the App Store; on iPhone and iPhone Duo,
-Sill has layouts of its own.
+These are native app previews rendered with demo data. They show the connection screen and Mac controls, without live desktop content or personal device details.
 
-| [!["Your Mac, on your iPad." The Mac's Weather app on an iPad held sideways, under Sill's bar of window thumbnails and buttons.](design/screenshots/ipad-1.jpg)](design/screenshots/ipad-1.jpg) | [!["Laptop mode." An iPad held upright, with the Mac's Clock app on top and Sill's bar, a row of keys and a trackpad below it.](design/screenshots/ipad-2.jpg)](design/screenshots/ipad-2.jpg) | [!["Sharp and smooth." Sill's Settings panel on an iPad held upright, with the Mac's Quality, Resolution and Frame Rate settings.](design/screenshots/ipad-3.jpg)](design/screenshots/ipad-3.jpg) |
-| :---: | :---: | :---: |
-| [!["Pair once. Private always." Sill's Connect to a Mac screen on an iPad, with a Mac listed as Wired and Add a Mac below it.](design/screenshots/ipad-4.jpg)](design/screenshots/ipad-4.jpg) | [!["Launch any Mac app." Sill's Apps list on an iPad held sideways, with a search field, the apps open now and every app installed on the Mac.](design/screenshots/ipad-5.jpg)](design/screenshots/ipad-5.jpg) | [!["Every window, one tap away." On an iPad held sideways, a window's thumbnail held in Sill's bar shows Close, Minimize and Full Screen.](design/screenshots/ipad-6.jpg)](design/screenshots/ipad-6.jpg) |
+<table>
+  <tr>
+    <th align="left">Find your Mac</th>
+    <th align="left">Make yourself comfortable</th>
+  </tr>
+  <tr>
+    <td width="38%" valign="top">
+      <img src="docs/images/iphone-connect.png" width="100%" alt="Mochi’s iPhone connection screen, with the matcha mascot and a demo Mac ready to connect.">
+      <p>Choose a Mac and connect. The same character welcomes you inside the app.</p>
+    </td>
+    <td width="62%" valign="top">
+      <img src="docs/images/mac-streaming.png" width="100%" alt="Mochi’s native Mac streaming settings, with controls for frame rate, quality, resolution, and remote-connection quality.">
+      <p>Adjust streaming quality and resolution from the Mac companion.</p>
+    </td>
+  </tr>
+</table>
+
+## What Mochi does
+
+- Streams one Mac window or a desktop at a time using hardware-accelerated HEVC video when available.
+- Supports touch input, an optional trackpad, keyboard input, and Mac menus.
+- Switches between apps and their open windows.
+- Supports cable, local Wi-Fi, nearby direct wireless, and configured remote connections.
+- Pairs trusted devices and uses encrypted transport in the Mac app.
+- Uses the Mochi character in app icons, the iPhone connection screen, and Mac settings, pairing, and status views.
+
+Mochi does not stream Mac audio or show multiple independent streams at once. Your Mac must stay awake with Mochi running.
+
+<table>
+  <tr>
+    <td width="33%"><strong>More room to read</strong><br>One app window, a compact toolbar, and reading zoom.</td>
+    <td width="33%"><strong>Controls when you need them</strong><br>Open the keyboard or trackpad without keeping both on screen.</td>
+    <td width="33%"><strong>Your Mac, your connection</strong><br>Use a cable, local Wi-Fi, or a configured remote network.</td>
+  </tr>
+</table>
 
 ## Requirements
 
-- A Mac with Apple silicon, on macOS 14 or later.
-- An iPhone or iPad with iOS 17 or iPadOS 17 or later.
-- On your Mac, Sill asks for Screen Recording, to show your windows, and
-  Accessibility, to click, scroll and type for you and to move and size the
-  window it shows. On macOS 15 or later, also allow Local Network. On your
-  iPhone or iPad, Sill asks for Local Network, to find your Mac, and for the
-  camera when you scan your Mac's pairing code (you can type the code
-  instead).
-- Your Mac and your device on the same network, joined by a USB cable, or near
-  each other with Direct Wireless Connection on. Away from home, your own VPN,
-  such as Tailscale, with Remote Access on.
+Use the following hardware and software to build and test Mochi.
 
-## How it works
+| Component | Requirement |
+| --- | --- |
+| Mac | Apple silicon is the tested configuration. The deployment target is macOS 14 or later. |
+| iPhone or iPad | iOS or iPadOS 17 or later, with Developer Mode enabled for a development installation. |
+| Xcode | Full Xcode with the iOS SDK. The current project is validated with Xcode 27.1. |
+| Signing | An Apple Account added to Xcode and a development team selected for the iOS app. |
+| Initial connection | A data-capable USB cable is recommended for the first test. |
+| Python | Python 3 with TLS 1.3 support for the protocol and integration checks. Python 3.13 was used for validation. |
 
-- **Sill for Mac** lives in the menu bar. When your device picks a window, or
-  the whole desktop, Sill captures it with ScreenCaptureKit and encodes it as
-  HEVC with VideoToolbox, on the hardware video encoder in your Mac (or, while
-  that is busy, in software). It captures nothing while no device is connected.
-- **The picture** goes over an encrypted connection (TLS 1.3) straight to the
-  Sill app on your iPhone or iPad, which decodes and shows it. When the
-  encoder or the link falls behind, Sill drops frames rather than queue them,
-  so the picture stays current.
-- **Your input** goes back the same way: taps and clicks, scrolls with
-  momentum, the on-screen trackpad, keys and typed text, and Apple Pencil as
-  the pointer. Sill for Mac turns it into mouse and keyboard events, which
-  needs Accessibility. A keyboard attached to your device types on your Mac as
-  soon as the picture shows, Esc included, and a trackpad or a mouse scrolls
-  the window under its pointer. Three fingers swipe and pinch as on a Mac's
-  trackpad: Mission Control, App Exposé, the Spaces, Apps and Show Desktop,
-  through the keyboard shortcuts your Mac has for them.
-- **On iPhone**, held upright, the picture is on top with buttons, keys and a
-  trackpad below. Larger Picture, in the settings panel, gives a window's
-  picture the room of the window thumbnails, down to where the keyboard comes
-  up; the Desktop keeps the usual layout. A window keeps its own shape until
-  you set its text size with Aa, or turn on the virtual display; then your Mac
-  makes it fill the taller picture.
-- **The clipboard** goes both ways while Share Clipboard is on, in both apps:
-  text you copy on your Mac is ready to paste on your device, and Paste in
-  Sill sends what you copied on your device to your Mac's clipboard, where you
-  press ⌘V. Sill never reads your device's clipboard by itself, and copies a
-  password manager marks as concealed stay on your Mac.
-- **On iPhone Duo**, Sill follows the hinge: open it flat and your Mac fills
-  the inner display; half open, the picture is above the fold with a trackpad
-  and keys below; closed, Sill runs on the cover display. Nothing you touch
-  sits on the fold.
-- **The menus** of the app you use reach your device too: in the iPad's own
-  menu bar on iPadOS 26 or later, and behind the Menus button in Sill's bar.
-  Sill for Mac reads each menu from the app as you open it and chooses the
-  item you pick, through Accessibility. When someone moves the mouse at your
-  Mac, your device shows the pointer where it is.
-- **Nearby**, your device finds your Mac with Bonjour on your local network.
-  Over a USB cable, your Mac shows as Wired and the connection uses the cable.
-  With no shared network, Direct Wireless Connection (off by default) connects
-  over peer-to-peer Wi-Fi, the way AirDrop does.
-- **Pairing**: you pair each iPhone or iPad with your Mac once. Tap your Mac on
-  the device, and your Mac shows a code: scan it, or type its 12 digits. Over
-  a USB cable the device pairs by itself. From then on each end knows the
-  other's key, and every connection, nearby or away, is pinned to those keys.
-  In Sill's Settings on your Mac, Devices lists the devices you paired, and
-  you can remove any of them there.
-- **Away from home**, Remote Access (off by default) lets the devices you
-  paired reach your Mac through your own VPN or a port you forward on your
-  router; a device learns how the next time it connects at home with Remote
-  Access on. A device away from home gets a quality of its own, Low at Standard
-  resolution until you pick another there or in Sill's settings, so a slow
-  connection never starts at your home quality; your home quality comes back
-  as soon as a device at home connects. When your device comes home and your
-  network lists your Mac, the session moves to your network by itself.
-- **When the link can't keep up**, Sill for Mac notices that it is holding
-  frames back and tells your device, which says so over the picture and, in
-  its Settings, offers a quality the link can carry.
-- **Text size**: Aa on your device resizes the window you stream on your Mac,
-  through Accessibility, so its text shows at the size you pick, and keeps it
-  at that size while it streams. The window goes back to its own size and
-  place when Sill stops showing it: you pick another window or the Desktop,
-  your last device disconnects, or you quit Sill. If you moved it on your Mac
-  meanwhile, it keeps its new place.
-- **The virtual display** (off by default) moves a window you stream onto a
-  display of its own on your Mac, so it keeps updating when other windows
-  cover it. It uses a private macOS API, which is one reason Sill for Mac comes
-  from the website and not from the Mac App Store.
+The standard build does not require a simulator runtime or third-party application frameworks. The optional foldable-device integration is disabled by default and is not validated here.
 
-Good to know: Sill shows one window, or the whole desktop, at a time, and it
-does not play sound from your Mac. The clipboard carries text only, up to 256
-KB at a time, and only between apps that both have it. Your Mac needs to be
-awake, with Sill open. Sill may not be able to wake it. After a restart Sill
-opens only once someone logs in, with Launch at Login on. Only the iPhones and
-iPads you paired can connect, unless you turn off Require pairing in Settings
-› Devices; then any device on your network can, still encrypted. Pairing at
-home came with Sill for Mac 0.4.0 and Sill for iPhone and iPad 0.5 (2), and
-each needs the other: the iPhone and iPad app shows an older Sill for Mac as
-"Update Sill", and an older iPhone and iPad app can't connect to Sill for Mac
-0.4.0 or later at home. Since 0.5.1 the two apps share one version number for
-each release. With Sill for Mac 0.3.1 or earlier, connections on your local
-network, over the cable and over Direct Wireless Connection are not encrypted,
-and anything that reaches your Mac there can connect without pairing: update
-it.
+## Set up Mochi
 
-## Tips
+### 1. Get the source
 
-Sill is free, with no ads, no tracking and no subscription. If it is useful to
-you, a tip through [GitHub Sponsors](https://github.com/sponsors/Saffsanity)
-helps pay for the developer account. A tip unlocks nothing: every feature is
-free.
+Clone the repository and open its directory:
 
-## Building from source
-
-You need a Mac with Xcode (Sill is built with Xcode 27; the iPhone and iPad
-app needs Xcode 27.1 or later, for the iPhone Duo's hinge and fold), selected
-as the active developer directory, with its license accepted.
-
-Sill for Mac, from the repository's folder:
-
-```
-Scripts/make-app.sh --install --open
+```sh
+git clone https://github.com/BlackMagicKau/mochi.git
+cd mochi
 ```
 
-This builds Sill.app with SwiftPM, signs it with your Apple Development
-identity, replaces /Applications/Sill.app and opens it. If that was the Sill
-for Mac you downloaded, grant Screen Recording and Accessibility again and
-pair each device again: the download keeps its key and paired devices in the
-data-protection keychain, which only a Developer ID build with the project's
-provisioning profile reads, and a build of your own keeps them in your login
-keychain. Without `--install` it only builds `.build/Sill.app`. With no Apple
-Development identity it signs ad hoc, and then Screen Recording and
-Accessibility have to be granted again after every build.
+For a private repository, authenticate with a GitHub account that has access before cloning.
 
-For work on the host itself, `swift run -c release SillHost` runs the same
-host on the command line, with one difference: unless you add `--pairing`, its
-home door is plain and open, with no pairing and no encryption, and any device
-on your network can connect to it, so run it only while developing. The App
-Store's Sill for iPhone and iPad never dials such a door ("Update Sill"); a
-Debug build from this repository can ([docs/DEVELOPMENT.md](docs/DEVELOPMENT.md),
-Pairing at home). With `--synthetic` it streams a test pattern with no Screen
-Recording needed.
+### 2. Prepare Xcode
 
-The iPhone and iPad app:
+1. Open Xcode and complete its first-launch setup. Install the iOS platform support when prompted.
+2. In **Xcode > Settings > Accounts**, add your Apple Account.
+3. If command-line builds use the wrong developer directory, select your Xcode installation in **Xcode > Settings > Locations > Command Line Tools**.
 
-1. Open `iOSClient/Sill.xcodeproj`.
-2. In the Sill target's Signing & Capabilities, pick your team, and change the
-   bundle identifier `me.saffer.sill` to one of your own.
-3. Run it on an iPhone or iPad on the same network as your Mac, and tap your
-   Mac. The first time, a Sill for Mac built from this repository asks you to
-   pair: scan the code it shows, or connect the device with a USB cable.
+Check the selected tools:
 
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the rest: every command-line
-flag, the test tools and the simulator harness, permissions and how to reset
-them, Remote Access, troubleshooting and releases.
+```sh
+xcodebuild -version
+xcode-select -p
+```
 
-## Contributing
+### 3. Build and install the Mac app
 
-Issues are welcome: bug reports, questions and ideas. For a pull request, keep
-to the conventions and decisions in [CLAUDE.md](CLAUDE.md): Swift and Apple
-frameworks only, no third-party dependencies, nothing that needs a server, and
-latency before picture quality. Open an issue before starting anything large.
-Before a pull request, `Tests/checks/run-all.sh` runs the same pure checks as
-CI, in about five minutes and with no device.
-Contributions are accepted under the project's license. Please report a
-security problem privately, as [SECURITY.md](SECURITY.md) says, not in a
-public issue.
+Build the Mac companion:
+
+```sh
+Scripts/make-mochi.sh
+```
+
+The app is created at `.build/Mochi.app`. The script uses your Apple Development signing identity when exactly one valid identity is available. If there are multiple identities, select one explicitly:
+
+```sh
+MOCHI_SIGN_IDENTITY="Apple Development: YOUR_CERTIFICATE_NAME" \
+  Scripts/make-mochi.sh
+```
+
+If no Apple Development identity is available, the script uses ad-hoc signing and prints a warning. A new ad-hoc build can invalidate previous privacy approvals. Use the same development identity for subsequent builds to keep the app's identity stable.
+
+To install the app:
+
+1. Quit any running copy of Mochi.
+2. Open the build directory:
+
+   ```sh
+   open .build
+   ```
+
+3. Move or copy **Mochi.app** to **Applications**. Replace an older installed copy when updating.
+4. Open **Mochi** from **Applications**. Mochi runs in the menu bar.
+
+Keep using this installed copy when granting permissions. Launching an older build from another folder can make permission problems harder to diagnose.
+
+### 4. Grant Mac permissions
+
+In **System Settings > Privacy & Security**, grant the permissions that Mochi needs:
+
+| Permission | Purpose |
+| --- | --- |
+| Screen & System Audio Recording | Lets Mochi capture Mac windows. The current app does not stream audio. |
+| Accessibility | Lets taps, keyboard input, and trackpad gestures control your Mac. |
+| Local Network, if prompted | Lets your devices discover and connect to each other. |
+
+Select `/Applications/Mochi.app` when adding an app to a permission list. After enabling Screen Recording, choose **Quit & Reopen** if macOS prompts you. Accessibility normally takes effect without a restart.
+
+If a permission is enabled but Mochi still requests it, follow the [permission troubleshooting procedure](docs/TROUBLESHOOTING.md#mochi-keeps-requesting-a-permission).
+
+### 5. Build and install the iPhone or iPad app
+
+1. Connect the device to your Mac with a data-capable cable and unlock it.
+2. Accept **Trust This Computer** on the device if prompted.
+3. Open the project:
+
+   ```sh
+   open iOSClient/Mochi.xcodeproj
+   ```
+
+4. Select the **Mochi** project, then the **Mochi** target. In **Signing & Capabilities**, leave **Automatically manage signing** enabled and select your team.
+5. If Xcode cannot register `dev.mochi.ios` for your team, change the bundle identifier to a unique identifier that you control.
+6. Select the **Mochi** scheme and your physical device as the run destination.
+7. On the device, enable **Settings > Privacy & Security > Developer Mode**. Restart and confirm if prompted.
+8. In Xcode, select **Product > Run**.
+9. If iOS blocks the development app, open **Settings > General > VPN & Device Management**, select your developer entry, and trust it.
+10. Open Mochi and allow **Local Network** access when prompted. Allow camera access if you use QR-code pairing.
+
+Development provisioning profiles expire. If the app stops opening after its profile expires, rebuild and reinstall it from Xcode. This is separate from network connectivity.
+
+For command-line signing without committing your team settings, copy `iOSClient/LocalSigning.xcconfig.example` to `iOSClient/LocalSigning.xcconfig` and replace `YOUR_TEAM_ID`. Git ignores the local file. Selecting a team directly in Xcode can modify the project file; do not commit another developer's personal signing settings.
+
+## Choose a connection
+
+The connection must provide a network route between both devices. Installing the app alone does not create an internet relay.
+
+| Connection | When to use it | Setup |
+| --- | --- | --- |
+| Cable | First-time testing or use beside your Mac | Connect and unlock the device, then select the Mac discovered by Mochi. A recognized cable connection is labeled as wired. |
+| Same Wi-Fi | Use on a shared local network | Put both devices on the same network, open both apps, and select the discovered Mac. Guest networks can block device-to-device traffic. |
+| Direct wireless | Use nearby without a shared Wi-Fi network | Enable **Direct Wireless Connection** in the Mac app and use **Search Nearby** on the device. Keep Wi-Fi available on both devices. |
+| Remote network or VPN | Use from a different location | Configure a permitted network route to the Mac, then use **Add Mac** with its reachable address or pairing link. Both devices must have access to that route. |
+
+For the first connection:
+
+1. Leave the Mac awake with Mochi running.
+2. Open Mochi on your iPhone or iPad and select the discovered Mac.
+3. Follow the pairing instructions shown by the apps. If Mochi recognizes a trusted cable, pairing can complete over the cable; otherwise, use the code or QR flow.
+4. Select a Mac app or window to start streaming.
+
+A phone on cellular cannot reach a private Mac address without an appropriate remote network path. A corporate VPN on the Mac alone does not provide that path to the phone. Follow your organization's policies for remote access on a managed Mac.
+
+## Use the iPhone controls
+
+The iPhone toolbar exposes controls without keeping a large trackpad on screen.
+
+| Control | Action |
+| --- | --- |
+| **Apps** | Open the app switcher. Select an app; select an already open app again to cycle through its windows. |
+| **Keyboard** | Show typing controls and shortcut keys. |
+| **Trackpad** | Show or hide a trackpad for pointer control. |
+| **Zoom** | Enter reading mode. Pinch to zoom and drag to move around the picture. |
+| **Control** | Return from reading mode to interacting with the Mac while retaining the zoom level. |
+| **Fit** | Reset the reading view to show the entire picture. |
+| **More** | Open desktop selection, Mac menus, text size, settings, and help. |
+
+For readable text, start with one app window. Mochi requests a window size that fits the phone, but some Mac apps enforce a minimum width. Use landscape orientation or **Zoom** when you need more room. Zooming magnifies the received image; it does not change the Mac app's font size.
+
+The iPad retains its separate layout. The phone layout is not a full desktop compressed into a permanently small preview.
+
+## Update an existing installation
+
+1. Get the latest source:
+
+   ```sh
+   git pull --ff-only
+   ```
+
+2. Build the Mac update with the same signing identity:
+
+   ```sh
+   Scripts/make-mochi.sh --staged
+   ```
+
+3. Quit Mochi and replace `/Applications/Mochi.app` with `.build/Mochi-next.app`, naming the installed copy `Mochi.app`.
+4. Rebuild and run the iOS app from Xcode.
+5. Open both apps and reconnect.
+
+Keep the Mac and iOS versions together. Mochi uses its own pairing and transport identifiers and is intended to connect to another Mochi app.
+
+## Develop and verify
+
+The main source areas are:
+
+| Path | Contents |
+| --- | --- |
+| `Sources/MochiHost` | Capture, encoding, transport, pairing, and remote input. |
+| `Sources/MochiMenuBar` | Mac app lifecycle, settings, status, and permissions. |
+| `Sources/StreamProtocol` | Shared wire format and connection policies. |
+| `iOSClient` | iPhone and iPad app, display, controls, and pairing. |
+| `design/MochiCharacter.png` | Selected A1 character used in the product. |
+| `Tests/checks` | Regression checks that compile the relevant Swift sources. |
+
+Run syntax, property-list, and regression checks:
+
+```sh
+Scripts/check-mochi.sh
+```
+
+Run selected checks during development:
+
+```sh
+Scripts/check-mochi.sh phone-portrait protocol cable-link
+```
+
+The network checks use loopback connections. A sandbox that blocks local sockets can cause failures or timeouts.
+
+To verify synthetic pairing and video transport:
+
+```sh
+swift build -c release --product MochiHost
+python3.13 Scripts/smoke-mochi.py
+```
+
+This test uses temporary identities and generated pixels. It does not capture your desktop or inject input. It verifies pairing and encoded video delivery, not physical-device usability.
+
+To compile the iOS app without signing or a simulator runtime:
+
+```sh
+xcodebuild -project iOSClient/Mochi.xcodeproj -scheme Mochi \
+  -destination 'generic/platform=iOS' -configuration Debug \
+  -derivedDataPath .build/iOS CODE_SIGNING_ALLOWED=NO build
+```
+
+An unsigned build cannot be installed on a physical device. See the [validation notes](docs/MOCHI-CHANGES.md) for tested configurations and limits.
+
+## Known limits
+
+- The Mac must remain awake. Mochi does not wake a powered-off Mac or provide access before macOS login. Closing a MacBook lid can put it to sleep.
+- Remote access requires your own reachable network configuration. There is no Mochi cloud relay.
+- Mac audio and simultaneous independent window streams are not implemented.
+- Some Mac apps cannot shrink to a phone-sized window.
+- The optional virtual-display implementation uses private CoreGraphics APIs.
+- Mac distribution is not notarized, and the project has no configured App Store release or automatic update service.
+- Optional foldable-device support is disabled unless built with `MOCHI_FOLDABLE_SDK` and a supporting SDK.
+
+## Meet Mochi
+
+<table>
+  <tr>
+    <td width="160"><img src="design/MochiCharacter.png" width="144" alt="The selected A1 character: a soft matcha dumpling with a dark green cap and a small smile."></td>
+    <td><strong>A small companion for your Mac.</strong><br>The selected A1 character appears in the app icon, connection screen, and Mac settings, pairing, and status views. The interface uses cream surfaces, matcha accents, and dark tea-green text.<br><br><a href="design/README.md">Explore the design assets</a></td>
+  </tr>
+</table>
+
+## Get help
+
+Use the [troubleshooting guide](docs/TROUBLESHOOTING.md) for setup and connection problems. For a reproducible bug, [open an issue](https://github.com/BlackMagicKau/mochi/issues) with the device models, OS versions, build revision, and reproduction steps. Remove pairing codes, tokens, addresses, and private window content from attachments.
+
+For security-sensitive reports, follow the [security policy](SECURITY.md).
 
 ## License
 
-Sill is licensed under the [Apache License 2.0](LICENSE).
-Copyright 2026 Noah Saffer.
+Mochi is distributed under [Apache-2.0](LICENSE). The [NOTICE](NOTICE) file records the original project's attribution and Mochi's modifications. Both files are included in the app bundles.

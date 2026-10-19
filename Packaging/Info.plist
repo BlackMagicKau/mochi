@@ -5,23 +5,23 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sill</string>
+	<string>Mochi</string>
 	<key>CFBundleExecutable</key>
-	<string>Sill</string>
+	<string>Mochi</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>me.saffer.sill.mac</string>
+	<string>dev.mochi.mac</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Sill</string>
+	<string>Mochi</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.5.1</string>
+	<string>0.1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSApplicationCategoryType</key>
@@ -32,12 +32,12 @@
 	<true/>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_sill._tcp</string>
+		<string>_mochi._tcp</string>
 	</array>
 	<key>NSHumanReadableCopyright</key>
-	<string>Sill is free and open source.</string>
+	<string>Mochi is based on Mochi, free and open source under Apache-2.0.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Sill makes this Mac visible to your iPhone and iPad on the same network so they can stream its windows.</string>
+	<string>Mochi makes this Mac visible to your iPhone and iPad on the same network so they can stream its windows.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSSupportsAutomaticTermination</key>

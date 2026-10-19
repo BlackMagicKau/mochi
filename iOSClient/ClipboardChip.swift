@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import StreamProtocol
 
@@ -62,15 +63,15 @@ struct ClipboardChip: View {
         .padding(.trailing, 6)
         .padding(.vertical, 6)
         .background(Capsule(style: .continuous).fill(Palette.bar))
-        .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
-        .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 8)
+        .overlay(Capsule(style: .continuous).strokeBorder(Palette.border, lineWidth: 1))
+        .shadow(color: Palette.accent.opacity(0.16), radius: 16, x: 0, y: 8)
         .accessibilityElement(children: .contain)
     }
 
     private func noteView(_ note: ClipboardNote) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: note.warning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                .foregroundStyle(note.warning ? Color.orange : Palette.accent)
+                .foregroundStyle(note.warning ? Palette.warning : Palette.accent)
                 .accessibilityHidden(true)
             Text(note.text)
                 .foregroundStyle(Palette.text)
@@ -80,8 +81,8 @@ struct ClipboardChip: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
         .background(Capsule(style: .continuous).fill(Palette.bar))
-        .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
-        .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 8)
+        .overlay(Capsule(style: .continuous).strokeBorder(Palette.border, lineWidth: 1))
+        .shadow(color: Palette.accent.opacity(0.16), radius: 16, x: 0, y: 8)
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(note.spoken)

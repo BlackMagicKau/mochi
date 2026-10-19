@@ -1,11 +1,15 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import SwiftUI
+
+// Mochi modification: the optional upstream foldable SDK integration is opt-in. Standard
+// iPhone/iPad builds do not require SDK 27.1 symbols; define MOCHI_FOLDABLE_SDK only with that SDK.
 
 // Feeds DuoPosture (the pure rules, DuoPosture.swift) from iOS 27.1's foldable APIs, and hands the
 // layouts what they need (docs/iphone-duo-plan.md). Nothing here runs before iOS 27.1, and on a
 // device without a hinge iOS 27.1 reports none: the environment then says `unknown`, and every layout
 // is what it was.
 //
-// - The hinge: `View.onHingeChange` at the app's root (SillApp, `readsDuoPosture()`), into the
+// - The hinge: `View.onHingeChange` at the app's root (MochiApp, `readsDuoPosture()`), into the
 //   environment as `\.duoEnvironment`. Its change is what redraws the screens that read it.
 // - The fold: each screen reads it from its own GeometryReader (`DuoPosture.read`), as
 //   `GeometryProxy.reservedRegions(kind: .division, options: .includeInactive)` gives it: in that
@@ -15,7 +19,7 @@ import SwiftUI
 // - The stream screen hides the status bar on the inner display in every pose
 //   (DuoPosture.hidesStatusBar, `duoStatusBar`); every other screen keeps it.
 //
-// DEBUG: the harness's `-SillHinge closed|half|flat` stands in for all of it (ContentView's
+// DEBUG: the harness's `-MochiHinge closed|half|flat` stands in for all of it (ContentView's
 // LayoutHarness): a hinge, and a fold given in the fake display's named space.
 
 /// What the app's root knows of the hinge, for the screens below it.
@@ -87,6 +91,7 @@ private struct DuoPostureReader: ViewModifier {
     @State private var hinge: DuoPosture.Hinge = .unknown
 
     func body(content: Content) -> some View {
+        #if MOCHI_FOLDABLE_SDK
         if #available(iOS 27.1, *) {
             content
                 .environment(\.duoEnvironment, DuoEnvironment(hinge: hinge))
@@ -101,9 +106,13 @@ private struct DuoPostureReader: ViewModifier {
         } else {
             content
         }
+        #else
+        content
+        #endif
     }
 }
 
+#if MOCHI_FOLDABLE_SDK
 @available(iOS 27.1, *)
 extension DuoPosture.Hinge {
     init(_ context: DeviceHingeContext) {
@@ -118,13 +127,14 @@ extension DuoPosture.Hinge {
         }
     }
 }
+#endif
 
 extension DuoPosture {
     /// The posture as the view `geo` measures sees it: the hinge from the environment (before its
     /// first report, from the fold: `hinge(reported:regionActive:)`), the fold in that view's own
     /// space (the reserved region's frame, as iOS 27.1 gives it to a GeometryProxy; or the harness's
     /// stand-in, moved into that space). `unknown` before iOS 27.1, on a device without a hinge, and
-    /// in the harness without `-SillHinge`.
+    /// in the harness without `-MochiHinge`.
     static func read(_ geo: GeometryProxy, _ environment: DuoEnvironment) -> DuoPosture {
         switch environment.source {
         case .standIn(let fold):
@@ -132,12 +142,14 @@ extension DuoPosture {
             let origin = geo.frame(in: .named(displaySpace)).origin
             return DuoPosture(hinge: environment.hinge, fold: fold?.offsetBy(dx: -origin.x, dy: -origin.y))
         case .reservedRegions:
+            #if MOCHI_FOLDABLE_SDK
             if #available(iOS 27.1, *) {
                 let region = geo.reservedRegions(kind: .division, options: .includeInactive).first
                 let hinge = hinge(reported: environment.hinge, regionActive: region?.isActive)
                 guard hinge != .unknown else { return .unknown }
                 return DuoPosture(hinge: hinge, fold: region?.frame)
             }
+            #endif
             return .unknown
         }
     }

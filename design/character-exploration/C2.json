@@ -1,0 +1,23 @@
+{
+  "label": "C2",
+  "direction": "Pocket turtle",
+  "rationale": "A gentle companion carrying its desktop/home everywhere.",
+  "assigned_corner": "lower-right",
+  "provider": "Built-in image_gen.imagegen",
+  "model": "Not exposed by runtime",
+  "constraint_delivery": "main-prompt constraints",
+  "prompt": "Create one complete full-bleed 1:1 square image, approximately 1536 \u00d7 1536.\nBackground: fill the entire square with solid light matcha green #B9CE96. Keep light matcha green visible in every open area and in the corners not occupied by the character; the assigned emergence corner must be occupied by the character.\nSubject: place one extremely simplified, cute, endearing baby pocket turtle IP character on the background, reduced to one soft rounded continuous silhouette and one defining feature: a broad rounded shell, suggesting a gentle little companion carrying its home everywhere. Large soft head, compact little body, both paired stubby limbs visible if shown, no shell plates or grid, no thin tail.\nComplexity: use only 4\u20137 large basic shapes and at most two broad internal color regions. Use two simple eyes and no mouth. Remove every nonessential line, outline, anatomical detail, texture, and decoration. Keep the character readable at 32 \u00d7 32.\nColor behavior: use exactly three semantic colors in the complete image: warm cream #FFFBEE for the body, deep tea #526D39 for one continuous broad shell region and the two simple eyes, plus the light matcha green #B9CE96 background. Organize the two character colors into broad purposeful masses and reuse them for facial marks. Keep the character, facial marks, and background clearly separated.\nComposition: keep the character upright and emerging from the assigned lower-right corner, filling about 85\u201395% of the square so it remains visually dominant. Cropping at the bottom or assigned side is welcome when it strengthens the corner emergence. Preserve both paired identifying features. Never center or bottom-center the character.\nStyle: make simplification, cuteness, and lovable baby-like appeal the strongest qualities. Use large soft forms, compact proportions, thick rounded contours, and an ultra-clean graphic treatment. Prefer one clear shape over several explanatory details. Add an extremely, extremely subtle, almost imperceptible sense of depth through a barely-there neo-skeuomorphic treatment.\nFinish: show only the character on the full-canvas background, with clean surfaces and normal square outer corners.\nConstraints: Use no text or watermark. Add no borders, frames, cards, or presentation masks. Include one character only, with no extra subjects or scenery. Use no fragile lines, sharp tips, unnecessary outlines, tiny details, or decorative marks. Add no photorealistic material, dramatic bevel, glossy hotspot, deep occlusion, extrusion, strong three-dimensional rendering, or external cast shadow. Keep the background solid and uniform, with no texture, vignette, or lighting variation.",
+  "saved_path": "C2.png",
+  "colors": {
+    "body": "#FFFBEE",
+    "shell_and_eyes": "#526D39",
+    "background": "#B9CE96"
+  },
+  "generation_count": 1,
+  "post_processing": "none",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "constraints": "Use no text or watermark. Add no borders, frames, cards, or presentation masks. Include one character only, with no extra subjects or scenery. Use no fragile lines, sharp tips, unnecessary outlines, tiny details, or decorative marks. Add no photorealistic material, dramatic bevel, glossy hotspot, deep occlusion, extrusion, strong three-dimensional rendering, or external cast shadow. Keep the background solid and uniform, with no texture, vignette, or lighting variation."
+}

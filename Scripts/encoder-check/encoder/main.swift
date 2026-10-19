@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // Encoder-free check of the real HEVCEncoder.swift (with the real EncoderMailbox.swift and
 // EncoderProbe.swift) against the stand-in VideoToolbox in FakeVT.swift, in real time: capture,
 // network and callback threads as the host has them. What EncoderMailbox's own check cannot see:
@@ -6,7 +7,7 @@
 //
 //   Scripts/encoder-check/run.sh encoder
 // E7 checks whatever `HEVCEncoder.replacingSlowSessions` is for the run: run.sh runs the check with
-// SILL_TEST_ENCODER_RECYCLE=1 (E1–E7) and =0 (E7 alone, `encoder-check E7`).
+// MOCHI_TEST_ENCODER_RECYCLE=1 (E1–E7) and =0 (E7 alone, `encoder-check E7`).
 import Foundation
 import CoreMedia
 import CoreVideo
@@ -15,7 +16,7 @@ import QuartzCore
 setvbuf(stdout, nil, _IOLBF, 0)
 Inject.install()
 let onlyE7 = CommandLine.arguments.dropFirst().first == "E7"
-// Read before any encoder is made, so a TEST line from SILL_TEST_ENCODER_RECYCLE prints here, not
+// Read before any encoder is made, so a TEST line from MOCHI_TEST_ENCODER_RECYCLE prints here, not
 // inside E1's "prints nothing when made".
 let replacing = HEVCEncoder.replacingSlowSessions
 print("new sessions for the slow state: \(replacing ? "on" : "off")")
@@ -226,8 +227,8 @@ func inversions(_ calls: [Call]) -> Int {
 // E5: frames reach VideoToolbox in the order they were let in, whichever thread let each in.
 // Deschedules are stood in for by `Inject`: the thread sleeps right after its Nth NSLock unlock.
 if !onlyE7 {
-    let capture = DispatchQueue(label: "sill.capture", qos: .userInteractive)
-    let network = DispatchQueue(label: "sill.net", qos: .userInteractive)
+    let capture = DispatchQueue(label: "mochi.capture", qos: .userInteractive)
+    let network = DispatchQueue(label: "mochi.net", qos: .userInteractive)
     // (a) A still window: a keyframe request on the network queue re-encodes the last frame, and a
     // repaint lands 1 ms later. The network thread sleeps 4 ms after its first or second unlock
     // (the decision and the admission were two holds, and the re-encode was queued after the
@@ -277,8 +278,8 @@ if !onlyE7 {
         Thread.detachNewThread {
             let enc = makeEncoder()
             let session = FakeVT.lastSession
-            let cap = DispatchQueue(label: "sill.capture.\(e)", qos: .userInteractive)
-            let net = DispatchQueue(label: "sill.net.\(e)", qos: .userInitiated)
+            let cap = DispatchQueue(label: "mochi.capture.\(e)", qos: .userInteractive)
+            let net = DispatchQueue(label: "mochi.net.\(e)", qos: .userInitiated)
             var seq = 300_000 + e * 10_000
             autoreleasepool { cap.sync { enc.encode(makeFrame(seq: seq), pts: CMClockGetTime(CMClockGetHostTimeClock())) } }
             var t = 0
@@ -326,8 +327,8 @@ if !onlyE7 {
 // While repaints go on, the next one carries the flag and nothing is re-encoded, and a last
 // repaint still waiting in the mailbox at the second look carries it itself.
 if !onlyE7 {
-    let capture = DispatchQueue(label: "sill.capture.e6", qos: .userInteractive)
-    let network = DispatchQueue(label: "sill.net.e6", qos: .userInteractive)
+    let capture = DispatchQueue(label: "mochi.capture.e6", qos: .userInteractive)
+    let network = DispatchQueue(label: "mochi.net.e6", qos: .userInteractive)
     /// Twelve repaints at 60 fps numbered from `base`, a keyframe request from the network queue
     /// `gap` after the last one's encode call, repaints at `repaintsAfter` seconds after it, then
     /// `watch` seconds. The session's encode calls, the forced ones among those made at or after
@@ -391,7 +392,7 @@ if !onlyE7 {
 }
 
 // E7: a stream whose session settles in the slow state gets a new session in place
-// (EncoderSlowState; `HEVCEncoder.replacesSlowSessions`, or SILL_TEST_ENCODER_RECYCLE): made while
+// (EncoderSlowState; `HEVCEncoder.replacesSlowSessions`, or MOCHI_TEST_ENCODER_RECYCLE): made while
 // the old one goes on, taken at the next hand-over with a forced keyframe, the old one invalidated
 // holding nothing; the watchdog, onHung and the counters see nothing of it, and one line says how
 // it went. A new session that hangs is a hang like any other. A waiting new session is dropped

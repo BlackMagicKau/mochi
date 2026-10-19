@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import Foundation
 import CoreGraphics
 
@@ -40,7 +41,7 @@ enum TourTarget: String, CaseIterable, Hashable {
     case stream, apps, strip, textSize, keyboard, settings, keys, trackpad
 }
 
-/// What this device remembers (UserDefaults `Sill.tourSeen`, `Sill.tourSkipped`): the steps passed
+/// What this device remembers (UserDefaults `Mochi.tourSeen`, `Mochi.tourSkipped`): the steps passed
 /// with Next or Done, and whether Skip was ever tapped.
 struct TourMemory: Equatable {
     var seen: Set<TourTopic> = []
@@ -81,7 +82,7 @@ struct TourMoment: Equatable {
     /// This session has had its decision in this layout.
     var offered: Bool
     var voiceOver: Bool
-    /// Release: always; Debug: only with `-SillTourState`.
+    /// Release: always; Debug: only with `-MochiTourState`.
     var enabled: Bool
 }
 
@@ -265,7 +266,7 @@ enum TourPolicy {
     // MARK: Sessions
 
     /// A new session's start. The automatic reconnect's session (a Wi-Fi drop, the Mac waking, an
-    /// eviction after a trip to another app, Sill.app relaunched) goes on with the last session's
+    /// eviction after a trip to another app, Mochi.app relaunched) goes on with the last session's
     /// decisions, so someone who started at once is not walked through the tour when the picture
     /// comes back; unless the last one ended before its picture's decision, or in the middle of a
     /// run, which then comes back with a beat of its own. A session the person starts (a row's
@@ -495,8 +496,8 @@ enum TourPolicy {
     static let skipHint = "Ends the tour. Take the Tour in Settings shows it again."
     /// The Settings panel's last row.
     static let takeTourTitle = "Take the Tour"
-    static func takeTourFootnote(device: String) -> String { "A short tour of Sill’s controls on this \(device)." }
-    static func takeTourHint(device: String) -> String { "Shows how to use Sill on this \(device)." }
+    static func takeTourFootnote(device: String) -> String { "A short tour of Mochi’s controls on this \(device)." }
+    static func takeTourHint(device: String) -> String { "Shows how to use Mochi on this \(device)." }
 
     /// The title as VoiceOver reads it: its place in the run, when the run has more than one card.
     static func spokenTitle(_ copy: TourCopy, index: Int, count: Int) -> String {
@@ -583,7 +584,7 @@ enum TourPolicy {
                 rows.append(row("cursorarrow.click.2", [strong("Tap with two fingers"), plain(" on the trackpad to right-click.")]))
                 rows.append(row("hand.draw", [strong("Touch and hold"), plain(" the trackpad, "), strong("then drag"), plain(", to move a window or select text.")]))
             }
-            let subtitle = keysOnItsSide ? "On its side, Sill adds keys and a trackpad." : "Upright, Sill adds keys and a trackpad."
+            let subtitle = keysOnItsSide ? "On its side, Mochi adds keys and a trackpad." : "Upright, Mochi adds keys and a trackpad."
             let hint: String
             switch layout {
             case .landscape, .portrait: hint = "Below the bar: the row of keys, then the trackpad."

@@ -1,0 +1,15 @@
+{
+  "label": "A2",
+  "direction": "Matcha mochi dumpling",
+  "rationale": "Makes Mochi's name tangible as a soft and friendly companion.",
+  "corner": "lower-right",
+  "provider": "built-in image_gen.imagegen",
+  "model": "Not exposed by runtime",
+  "constraintDelivery": "main-prompt constraints",
+  "prompt": "Create one complete full-bleed 1:1 square image, approximately 1536 \u00d7 1536.\nBackground: fill the entire square with solid light matcha #B9CE96. Keep light matcha visible in every open area and in the corners not occupied by the character; the assigned emergence corner must be occupied by the character.\nSubject: one extremely simplified, cute, endearing matcha mochi dumpling character, reduced to one soft rounded squat continuous silhouette, like a gently squished dome with broad soft cheeks, with one broad, soft, deep-green matcha dough region wrapping its lower side as its defining feature. Tiny widely spaced eyes and one tiny softly rounded mouth. No leaf or accessories. Calm baby-like appeal.\nComplexity: use only 4\u20137 large basic shapes and at most two broad internal color regions. Remove every nonessential line, outline, anatomical detail, texture, and decoration. Keep the character readable at 32 \u00d7 32.\nColor behavior: exactly three semantic colors in the complete image: warm cream #FFFBEE main dumpling body, deep tea #526D39 broad lower region and facial marks, and light matcha #B9CE96 background. Organize character colors into broad purposeful masses, reuse deep tea for eyes and mouth. Keep subject, face, background clearly separated.\nComposition: keep character upright, emerging from lower-right, filling about 85\u201395% of square. Cropping at bottom or right welcome. Never center or bottom-center.\nStyle: simplification, cuteness, and lovable baby-like appeal strongest qualities. Large soft forms, compact proportions, thick rounded contours, ultra-clean graphic treatment. Prefer one clear shape over several explanatory details. Add an extremely, extremely subtle, almost imperceptible sense of depth through a barely-there neo-skeuomorphic treatment.\nFinish: only character on full-canvas background, clean surfaces and normal square outer corners.\nConstraints: Use no text or watermark. Add no borders, frames, cards, or presentation masks. Include one character only, with no extra subjects or scenery. Use no fragile lines, sharp tips, unnecessary outlines, tiny details, or decorative marks. Add no photorealistic material, dramatic bevel, glossy hotspot, deep occlusion, extrusion, strong three-dimensional rendering, or external cast shadow. Keep background solid and uniform, with no texture, vignette, or lighting variation.",
+  "path": "A2.png",
+  "dimensions": [
+    1254,
+    1254
+  ]
+}

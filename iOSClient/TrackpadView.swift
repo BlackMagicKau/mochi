@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import UIKit
 import UIKit.UIGestureRecognizerSubclass
@@ -48,7 +49,7 @@ struct Trackpad: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(shape)
-        .overlay(shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
+        .overlay(shape.strokeBorder(Palette.border, lineWidth: 1))
     }
 }
 
@@ -58,7 +59,7 @@ private struct DotGrid: View {
         Canvas { context, size in
             let step: CGFloat = 18
             let radius: CGFloat = 1
-            let dot = GraphicsContext.Shading.color(.white.opacity(0.07))
+            let dot = GraphicsContext.Shading.color(Palette.accent.opacity(0.18))
             var y = step / 2
             while y < size.height {
                 var x = step / 2
@@ -558,7 +559,7 @@ final class TrackpadSurface: UIView, UIGestureRecognizerDelegate {
     }
 
     #if DEBUG
-    // MARK: - The input script (`-SillInputScript`, ContentView)
+    // MARK: - The input script (`-MochiInputScript`, ContentView)
 
     /// A stroke the script started and has not lifted.
     private var scriptStroke = false
@@ -664,20 +665,20 @@ private final class FingerTracker: UILongPressGestureRecognizer {
 
 // MARK: - Input test (DEBUG)
 
-/// DEBUG `-SillInputTest 1` (ContentView's contract): a scripted run through the key row's and the
+/// DEBUG `-MochiInputTest 1` (ContentView's contract): a scripted run through the key row's and the
 /// trackpad's own code, once per launch, so a gate can see what they send without anything driving
-/// the UI. Only for a session `-SillConnect` dialed on this Mac's loopback, and even there each
+/// the UI. Only for a session `-MochiConnect` dialed on this Mac's loopback, and even there each
 /// event reaches the Mac's host: a synthetic host counts it as `in.dry` and posts nothing, a real
 /// one posts it on this Mac, so point it only at a synthetic host, or put a relay that drops kind 8
 /// (input) in front of the host. The key row taps cmd, esc, shift and ctrl (KeyRow.runInputTest);
 /// the trackpad then strokes, taps and scrolls (`TrackpadSurface.runInputTest`).
 enum InputTest {
     static let enabled: Bool = {
-        guard UserDefaults.standard.bool(forKey: "SillInputTest") else { return false }
-        let host = (UserDefaults.standard.string(forKey: "SillConnect") ?? "").lowercased()
+        guard UserDefaults.standard.bool(forKey: "MochiInputTest") else { return false }
+        let host = (UserDefaults.standard.string(forKey: "MochiConnect") ?? "").lowercased()
         guard host.hasPrefix("127.0.0.1:") || host.hasPrefix("[::1]:") || host.hasPrefix("::1:")
                 || host.hasPrefix("localhost:") else {
-            print("input test: not run: -SillInputTest needs a session -SillConnect dials on this Mac's loopback")
+            print("input test: not run: -MochiInputTest needs a session -MochiConnect dials on this Mac's loopback")
             return false
         }
         return true

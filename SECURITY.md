@@ -1,37 +1,19 @@
-# Security
+# Security policy
 
-Sill lets an iPhone or iPad see and control a Mac, so a flaw in it matters.
-If you find one, please report it privately.
+Mochi captures screen content and can inject input into a paired Mac. Treat pairing codes, device identities, and captured content as private.
 
-## Reporting a problem
+## Report a vulnerability
 
-Email support@getsill.app. Say what you found, how to reproduce it, and which
-versions of Sill for Mac and of the iPhone and iPad app you tried (Sill for
-Mac's is at the foot of its Settings › General). Please don't open a public
-issue or pull request for it, and give a fix time to ship before you publish
-anything. You can also use "Report a vulnerability" on this repository's
-Security tab.
+Do not include exploit details, credentials, or private screen content in a regular issue. If GitHub displays **Report a vulnerability** on this repository's **Security** tab, use that private reporting flow. Otherwise, contact a repository maintainer through an existing private channel before sharing details.
 
-Fixes ship in the newest release: Sill for Mac from
-[getsill.app](https://getsill.app/download), whose update check tells everyone
-who has it, and the newest iPhone and iPad app.
+This project has no dedicated security mailbox or guaranteed response schedule. Do not send reports about Mochi to the original project's support service.
 
-## What is in scope
+## Security boundaries
 
-- The connection on the Mac's own networks, over a USB cable and with Direct
-  Wireless Connection: what Sill for Mac accepts, and what a device can make
-  it do.
-- Remote Access's connection, and pairing, at home and away: the QR code, the
-  typed code, `sill://pair` links, a USB cable's automatic pairing, Require
-  pairing, and the paired devices and keys Sill for Mac keeps in the keychain.
-- The update check, which asks GitHub's releases feed about once a day and
-  downloads nothing.
-- The website, getsill.app.
+- The packaged Mac app uses TLS and device pairing. Keep pairing required.
+- The developer command-line host can use an unencrypted listener unless started with `--pairing`.
+- Screen Recording and Accessibility permissions are controlled by macOS.
+- Remote access requires your own permitted network configuration. The project does not provide a cloud relay.
+- Development builds are not a notarized public release.
 
-Known, and by design: with Require pairing off (Settings › Devices), any
-device on the Mac's own networks, one nearby while Direct Wireless Connection
-is on, and any app on the Mac itself connect without pairing, still
-encrypted. `SillHost`, the command-line host for development, keeps a plain
-home door, with no pairing and no encryption, unless it runs with
-`--pairing`. Sill for Mac 0.3.1 and earlier had no pairing and no encryption
-at home: update to the newest release.
+Before submitting logs or screenshots, remove pairing codes, private addresses, tokens, keys, device names, and confidential window content.

@@ -1,0 +1,13 @@
+Mochi
+
+Mochi is an independently branded derivative of Sill.
+Sill: Copyright 2026 Noah Saffer. Licensed under the Apache License, Version 2.0.
+Upstream: https://github.com/Saffsanity/sill
+Starting revision: 5c323e6965b5011809548e5067f9e8e6fa6adf54
+
+Mochi modifications (2026): matcha-and-cream native interface, matcha-dumpling character
+artwork, application and pairing identity separation, local build tooling, and optional
+foldable-SDK compilation. See docs/MOCHI-CHANGES.md for changed files and build limits.
+
+Mochi is not an official Sill release and is not endorsed by its original author.
+The upstream license is included in LICENSE. No upstream trademark rights are claimed.

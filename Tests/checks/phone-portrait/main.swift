@@ -758,5 +758,19 @@ for rule in largerRules {
     check("Larger Picture grid (\(largerSizes) layouts): \(rule.name)" + (rule.firstFailure.map { " — first failure at \($0)" } ?? ""), rule.firstFailure == nil)
 }
 
+// Screen-first iPhone: no blank-edge panning or division by zero when a stream changes.
+let wideVideo = CGSize(width: 1600, height: 1000)
+let tallViewport = CGSize(width: 380, height: 650)
+check("reading: Fit cannot pan into letterboxing", PhoneCanvasGeometry.clamp(CGSize(width: 900, height: -900), viewport: tallViewport, video: wideVideo, zoom: 1) == .zero)
+let zoomed = PhoneCanvasGeometry.clamp(CGSize(width: 900, height: -900), viewport: tallViewport, video: wideVideo, zoom: 2)
+check("reading: wide video pans horizontally at 2x, not into vertical letterbox", near(zoomed.width, 190) && near(zoomed.height, 0))
+let tallVideo = CGSize(width: 400, height: 1000)
+let tallZoom = PhoneCanvasGeometry.clamp(CGSize(width: -900, height: 900), viewport: tallViewport, video: tallVideo, zoom: 2)
+check("reading: portrait app pans to both boundaries", near(tallZoom.width, -70) && near(tallZoom.height, 325))
+check("reading: rotation clamps a stale pan", PhoneCanvasGeometry.clamp(CGSize(width: 190, height: 325), viewport: CGSize(width: 780, height: 300), video: wideVideo, zoom: 1) == .zero)
+check("reading: missing video resets safely", PhoneCanvasGeometry.clamp(CGSize(width: 10, height: 10), viewport: tallViewport, video: .zero, zoom: 2) == .zero)
+check("trackpad: motion follows the actual frame aspect", near(PhoneCanvasGeometry.trackpadSpan(width: 360, video: wideVideo), 225))
+check("trackpad: safe fallback before video", near(PhoneCanvasGeometry.trackpadSpan(width: 360, video: .zero), 225))
+
 print("\(passes) passed, \(fails) failed")
 exit(fails == 0 ? 0 : 1)

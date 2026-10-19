@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import CoreGraphics
 
 /// Where everything goes on a phone held upright (Noah, 2026-09-27; docs/iphone-portrait-plan.md):
@@ -74,7 +75,7 @@ struct PhonePortraitLayout: Equatable {
 
     /// Larger Picture: the key row's bottom at least this far above the software keyboard's top.
     static let keyboardClearance: CGFloat = 10
-    /// The software keyboard as Sill's input view shows it on an iPhone held upright (autocorrection
+    /// The software keyboard as Mochi's input view shows it on an iPhone held upright (autocorrection
     /// is off, so it has no suggestions bar), measured on the iOS 27 simulators
     /// (docs/larger-picture-plan.md, Results): 233 pt on an iPhone with a Home button (the SE); with
     /// Face ID, by the stream screen's width, 320 from 414 pt (the 11 and 11 Pro Max, the Plus and
@@ -363,5 +364,23 @@ struct PhonePortraitLayout: Equatable {
         return (0..<count).map { i in
             CGRect(x: row.minX + CGFloat(i) * (each + gap), y: row.minY, width: each, height: row.height)
         }
+    }
+}
+
+/// Local magnification never changes the host viewport. Clamp against the actual aspect-fit video,
+/// not its letterbox, so a pan cannot lose the picture beyond a blank edge.
+enum PhoneCanvasGeometry {
+    static func clamp(_ offset: CGSize, viewport: CGSize, video: CGSize, zoom: CGFloat) -> CGSize {
+        guard viewport.width > 0, viewport.height > 0, video.width > 0, video.height > 0 else { return .zero }
+        let fit = min(viewport.width / video.width, viewport.height / video.height)
+        let scale = min(4, max(1, zoom))
+        let x = max(0, (video.width * fit * scale - viewport.width) / 2)
+        let y = max(0, (video.height * fit * scale - viewport.height) / 2)
+        return CGSize(width: min(x, max(-x, offset.width)), height: min(y, max(-y, offset.height)))
+    }
+
+    static func trackpadSpan(width: CGFloat, video: CGSize) -> CGFloat {
+        guard video.width > 0, video.height > 0 else { return width / 1.6 }
+        return width * video.height / video.width
     }
 }

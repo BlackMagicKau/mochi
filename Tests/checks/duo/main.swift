@@ -1,3 +1,5 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
+// Mochi: resolve layout arithmetic as Int before converting for Swift 6.2 typechecking.
 import Foundation
 import CoreGraphics
 // DuoPosture (iOSClient/DuoPosture.swift) on its own: the iPhone Duo's posture and the layout rules
@@ -112,7 +114,8 @@ check(DuoPosture.crease(size(669, 869), .known(rect(0, 373.5, 669, 40)))! == (37
 
 // MARK: - The halves' split (approved (b1) and (b2))
 
-let controls: CGFloat = 12 + 78 + 2 * 10 + 48 + 22     // PortraitMetrics.regular's controls but the trackpad: 180
+let controlPoints: Int = 12 + 78 + 2 * 10 + 48 + 22
+let controls = CGFloat(controlPoints)     // PortraitMetrics.regular's controls but the trackpad: 180
 check(controls == 180, "the regular halves' controls")
 // (b1) The laptop pose: the picture above the fold, the controls below it, in whole points.
 check(DuoPosture.portraitSplit(upright, .known(laptopFold), aspect: 1.6, controls: controls) == .init(picture: 455, controls: 496),
@@ -148,8 +151,10 @@ for w in stride(from: CGFloat(600), through: 800, by: 13) {
             // A fold anywhere across: never into it, whole points.
             let band = rect(0, (h / 2 - 20).rounded(.down) + 0.5, w, 40)
             let half = DuoPosture.portraitSplit(s, .known(band), aspect: aspect, controls: controls)
-            check(half.picture <= band.minY && half.controls >= band.maxY && half.picture == half.picture.rounded()
-                  && half.controls == half.controls.rounded() && half.controls - half.picture <= 41, "half-folded \(s)")
+            let outsideFold = half.picture <= band.minY && half.controls >= band.maxY
+            let wholePoints = half.picture == half.picture.rounded() && half.controls == half.controls.rounded()
+            let boundedGap = half.controls - half.picture <= 41
+            check(outsideFold && wholePoints && boundedGap, "half-folded \(s)")
         }
     }
 }
@@ -331,11 +336,11 @@ for x in stride(from: CGFloat(115), through: 836, by: 7) {
 // MARK: - The harness's stand-in
 
 check(DuoPosture.hinge(argument: "closed") == .closed && DuoPosture.hinge(argument: "half") == .partiallyOpen
-      && DuoPosture.hinge(argument: "flat") == .fullyOpen && DuoPosture.hinge(argument: "HALF") == .partiallyOpen, "-SillHinge")
-check(DuoPosture.hinge(argument: nil) == nil && DuoPosture.hinge(argument: "open") == nil && DuoPosture.hinge(argument: "") == nil, "-SillHinge: nothing else")
+      && DuoPosture.hinge(argument: "flat") == .fullyOpen && DuoPosture.hinge(argument: "HALF") == .partiallyOpen, "-MochiHinge")
+check(DuoPosture.hinge(argument: nil) == nil && DuoPosture.hinge(argument: "open") == nil && DuoPosture.hinge(argument: "") == nil, "-MochiHinge: nothing else")
 check(DuoPosture.standInFold(book) == bookFold && DuoPosture.standInFold(upright) == laptopFold, "the stand-in is the device's fold")
 check(DuoPosture.standInFold(size(1000, 710)) == rect(480, 0, 40, 710) && DuoPosture.standInFold(size(710, 1000)) == rect(0, 480, 710, 40), "at any size")
-check(DuoPosture.displaySpace == "sill.display", "the fake display's space")
+check(DuoPosture.displaySpace == "mochi.display", "the fake display's space")
 func insets(_ s: CGSize, hidden: Bool = false) -> [CGFloat]? {
     DuoPosture.displayInsets(s, statusBarHidden: hidden).map { [$0.top, $0.leading, $0.bottom, $0.trailing] }
 }

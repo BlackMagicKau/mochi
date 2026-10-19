@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // H3 (step 5): DiscoveryPolicy's remote rules, RemoteDialPolicy and SavedMacs, pure, compiled with
 // StreamProtocol's sources as one module (build.sh strips `import StreamProtocol`).
 import Foundation
@@ -98,19 +99,19 @@ check("goodbyes: remoteOff and busy", R.classify(.goodbye("remoteOff"), candidat
 check("names: not found; a .ts.net name that does not resolve is the VPN off",
       R.classify(.dns(-65554), candidate: nameC, usedTunnel: nil) == .nameNotFound && R.classify(.dns(-65538), candidate: tsName, usedTunnel: nil) == .vpnOff)
 check("Local Network on a LAN address", R.classify(.dns(-65570), candidate: lanC, usedTunnel: false) == .localNetwork)
-check("not Sill", R.classify(.tls(-9836), candidate: netC, usedTunnel: nil) == .notSill && R.classify(.notSill, candidate: netC, usedTunnel: nil) == .notSill
-      && R.classify(.tls(-9810), candidate: vpnC, usedTunnel: true) == .notSill)
+check("not Mochi", R.classify(.tls(-9836), candidate: netC, usedTunnel: nil) == .notMochi && R.classify(.notMochi, candidate: netC, usedTunnel: nil) == .notMochi
+      && R.classify(.tls(-9810), candidate: vpnC, usedTunnel: true) == .notMochi)
 check("silence: didn't answer; on a VPN address with no tunnel in the path, the VPN is off here",
       R.classify(.timeout, candidate: netC, usedTunnel: false) == .noAnswer && R.classify(.posix(ETIMEDOUT), candidate: vpnC, usedTunnel: false) == .vpnOff
       && R.classify(.posix(ENETUNREACH), candidate: vpnC, usedTunnel: true) == .noAnswer && R.classify(.posix(EHOSTUNREACH), candidate: vpnC, usedTunnel: nil) == .noAnswer
       && R.classify(.noWindowList, candidate: netC, usedTunnel: nil) == .noAnswer)
-check("priority", R.worst([.noAnswer, .wrongMac, .refused]) == .wrongMac && R.worst([.notSill, .refused]) == .refused
-      && R.worst([.nameNotFound, .vpnOff]) == .vpnOff && R.worst([.noAnswer, .notSill]) == .notSill && R.worst([.revoked, .refused]) == .revoked
+check("priority", R.worst([.noAnswer, .wrongMac, .refused]) == .wrongMac && R.worst([.notMochi, .refused]) == .refused
+      && R.worst([.nameNotFound, .vpnOff]) == .vpnOff && R.worst([.noAnswer, .notMochi]) == .notMochi && R.worst([.revoked, .refused]) == .revoked
       && R.worst([.noAnswer]) == .noAnswer && R.worst([]) == nil && R.worst([.localNetwork, .noAnswer]) == .localNetwork)
 check("the plan's order is kept", R.priority.firstIndex(of: .wrongMac)! < R.priority.firstIndex(of: .revoked)!
       && R.priority.firstIndex(of: .revoked)! < R.priority.firstIndex(of: .refused)! && R.priority.firstIndex(of: .refused)! < R.priority.firstIndex(of: .vpnOff)!
-      && R.priority.firstIndex(of: .vpnOff)! < R.priority.firstIndex(of: .nameNotFound)! && R.priority.firstIndex(of: .nameNotFound)! < R.priority.firstIndex(of: .notSill)!
-      && R.priority.firstIndex(of: .notSill)! < R.priority.firstIndex(of: .noAnswer)!)
+      && R.priority.firstIndex(of: .vpnOff)! < R.priority.firstIndex(of: .nameNotFound)! && R.priority.firstIndex(of: .nameNotFound)! < R.priority.firstIndex(of: .notMochi)!
+      && R.priority.firstIndex(of: .notMochi)! < R.priority.firstIndex(of: .noAnswer)!)
 
 // MARK: Saved Macs
 func key(_ seed: UInt8) -> Data { Data(repeating: seed, count: 32) }

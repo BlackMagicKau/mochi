@@ -1,0 +1,51 @@
+{
+  "direction": "Window spirit",
+  "rationale": "A friendly living window reflects Mochi's promise of bringing a Mac app into reach on an iPhone.",
+  "provider": "Built-in image_gen.imagegen",
+  "model": "Not exposed by tool metadata",
+  "constraintDelivery": "main-prompt constraints",
+  "independentGenerations": true,
+  "postProcessing": false,
+  "candidates": [
+    {
+      "label": "B1",
+      "assignedCorner": "lower-left",
+      "path": "B1.png",
+      "prompt": "B1-prompt.txt",
+      "requestedDimensions": [
+        1536,
+        1536
+      ],
+      "actualDimensions": [
+        1254,
+        1254
+      ],
+      "colors": {
+        "bodyAndEyes": "#A4BF78",
+        "face": "#34452A",
+        "background": "#FFFBEE"
+      },
+      "originalPath": "exec-41bcf666-afe5-4592-9d41-d3cd594461ab.png"
+    },
+    {
+      "label": "B2",
+      "assignedCorner": "lower-right",
+      "path": "B2.png",
+      "prompt": "B2-prompt.txt",
+      "requestedDimensions": [
+        1536,
+        1536
+      ],
+      "actualDimensions": [
+        1254,
+        1254
+      ],
+      "colors": {
+        "bodyAndEyes": "#FFFBEE",
+        "face": "#34452A",
+        "background": "#B9CE96"
+      },
+      "originalPath": "exec-aec0dd69-2ee5-487b-be4e-15aa389072a9.png"
+    }
+  ]
+}

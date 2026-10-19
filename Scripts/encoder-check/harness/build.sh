@@ -23,14 +23,14 @@ build() {   # NAME TREE
   local d=$OUT/harness-src-$name; rm -rf $d; mkdir -p $d
   sed -e '/^import StreamProtocol$/d' \
       -e 's/^    private func handle(_ sb: CMSampleBuffer) {$/    private func handle(_ sb: CMSampleBuffer) {\n        harnessOutputPTS = CMSampleBufferGetPresentationTimeStamp(sb)/' \
-      $tree/Sources/SillHost/HEVCEncoder.swift > $d/HEVCEncoder.swift
+      $tree/Sources/MochiHost/HEVCEncoder.swift > $d/HEVCEncoder.swift
   grep -q 'harnessOutputPTS = ' $d/HEVCEncoder.swift || { echo "patch failed for $name"; exit 1 }
   local extra=()
-  [[ -f $tree/Sources/SillHost/EncoderMailbox.swift ]] && extra+=($tree/Sources/SillHost/EncoderMailbox.swift)
-  [[ -f $tree/Sources/SillHost/EncoderSlowState.swift ]] && extra+=($tree/Sources/SillHost/EncoderSlowState.swift)
-  swiftc -O -package-name sill -module-name Harness -o $OUT/harness-$name \
-    $ROOT/Scripts/encoder-check/harness/main.swift $d/HEVCEncoder.swift $tree/Sources/SillHost/EncoderProbe.swift \
-    $tree/Sources/SillHost/Stats.swift $tree/Sources/StreamProtocol/*.swift $extra
+  [[ -f $tree/Sources/MochiHost/EncoderMailbox.swift ]] && extra+=($tree/Sources/MochiHost/EncoderMailbox.swift)
+  [[ -f $tree/Sources/MochiHost/EncoderSlowState.swift ]] && extra+=($tree/Sources/MochiHost/EncoderSlowState.swift)
+  swiftc -O -package-name mochi -module-name Harness -o $OUT/harness-$name \
+    $ROOT/Scripts/encoder-check/harness/main.swift $d/HEVCEncoder.swift $tree/Sources/MochiHost/EncoderProbe.swift \
+    $tree/Sources/MochiHost/Stats.swift $tree/Sources/StreamProtocol/*.swift $extra
   echo "built $OUT/harness-$name"
 }
 build base $base_tree

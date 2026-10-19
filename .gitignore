@@ -21,3 +21,14 @@ design/reel/
 
 # Python's bytecode caches (Tests/checks/module.py, which its checks' mutants.py import).
 __pycache__/
+
+# Mochi local build logs and artifacts
+build-*.log
+artifacts/
+
+# Local signing preferences and machine-specific preview captures
+iOSClient/LocalSigning.xcconfig
+design/character-exploration/implemented-previews/
+.env
+.env.*
+!.env.example

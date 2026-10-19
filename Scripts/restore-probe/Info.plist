@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>me.saffer.sill.restoreprobe</string>
+	<string>dev.mochi.restoreprobe</string>
 	<key>CFBundleName</key>
-	<string>Sill Restore Probe</string>
+	<string>Mochi Restore Probe</string>
 	<key>CFBundleExecutable</key>
 	<string>owner</string>
 	<key>CFBundlePackageType</key>

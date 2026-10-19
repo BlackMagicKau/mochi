@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 // Away from home on the host (docs/remote-bundle-plan.md §5, the rules under H7–H9 and H13):
 // HostConfig's away pair, DeviceSettings' view of it and AwayPolicy, compiled as one module with
 // StreamProtocol's HostSettings.swift (build.sh strips `import StreamProtocol`):
@@ -92,7 +93,7 @@ do {
     let made = HostConfig(maxFPS: 60, captureScale: 1, bitrate: 8_000_000, awayBitrate: 4_000_000, awayCaptureScale: 1, prioritizeSpeed: false,
                           virtualDisplay: false, directWireless: false, remoteAccess: false, remotePort: 7455, internetAccess: false,
                           requirePairing: true, shareClipboard: false)
-    check(!made.shareClipboard, "a HostConfig made with it off has it off (as Sill.app's settings make one)")
+    check(!made.shareClipboard, "a HostConfig made with it off has it off (as Mochi.app's settings make one)")
     let all = HostSettingsChange(token: 1, maxFPS: 60, bitrate: 25_000_000, captureScale: 1, prioritizeSpeed: true, virtualDisplay: true,
                                  directWireless: true)
     check(!off.applying(all).shareClipboard && !off.applyingAway(all).shareClipboard

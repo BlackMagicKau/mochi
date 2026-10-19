@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Combine
 import UIKit
 import StreamProtocol
@@ -67,10 +68,10 @@ final class ClientStatsReporter: ObservableObject {
 #if DEBUG
 /// The on-screen readout: "58 fps · age 9/24 ms · rtt 7/80 ms · 3024×1898" in a translucent
 /// capsule at the display view's top-right; each pair is the last second's median/max, "–" for a
-/// second without a sample. Only built when launched with `-SillHUD 1`; never in Release.
+/// second without a sample. Only built when launched with `-MochiHUD 1`; never in Release.
 /// Purely visual: it never takes a touch, so input still reaches the overlay underneath the stream.
 final class DiagnosticsHUDView: UIView {
-    static var isEnabled: Bool { UserDefaults.standard.bool(forKey: "SillHUD") }
+    static var isEnabled: Bool { UserDefaults.standard.bool(forKey: "MochiHUD") }
 
     private static let inset: CGFloat = 8
     private static let padding = UIEdgeInsets(top: 3, left: 8, bottom: 3, right: 8)

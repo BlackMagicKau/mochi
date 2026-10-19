@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 
 /// The stream's input view (InputOverlayView) and a hardware keyboard on this device: whether the view
@@ -139,7 +140,7 @@ struct HardwareKeyboardPolicy: Equatable {
 
     /// `setKeyboard(shown:)`. True: the person's keyboard put back (the Settings panel or the tour
     /// closing over the keyboard they had up, the Menus pull-down after Settings; DEBUG
-    /// `-SillKeyboard 1`), while a view is in a window. False: whoever holds it lets go (the Settings
+    /// `-MochiKeyboard 1`), while a view is in a window. False: whoever holds it lets go (the Settings
     /// panel, the tour and the pairing overlay opening).
     mutating func shown(_ show: Bool) -> [Action] {
         guard show else { return hold == .none ? [] : [.letGo] }

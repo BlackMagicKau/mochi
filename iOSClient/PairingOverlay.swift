@@ -1,3 +1,4 @@
+// Modified for Mochi; see docs/MOCHI-CHANGES.md. Original license and attribution retained in LICENSE and NOTICE.
 import SwiftUI
 import StreamProtocol
 
@@ -6,7 +7,7 @@ import StreamProtocol
 /// hold and which could cross the crease). Opening it asks the Mac to show its code (kind 21); the
 /// scanner reads it, or the code is typed (the address comes from this connection's kind 18). A
 /// pairing here never moves the session: the pairing connection closes and the home session goes
-/// on. Also where an outside sill://pair link is confirmed while connected, and its pairing then
+/// on. Also where an outside mochi://pair link is confirmed while connected, and its pairing then
 /// runs to its end.
 struct PairingOverlay: View {
     @ObservedObject var client: StreamClient
@@ -45,7 +46,7 @@ struct PairingOverlay: View {
                 // No tap gesture here: one on this backdrop took the taps meant for the buttons in
                 // front of it (measured on the simulator). What is under the overlay is not
                 // hit-testable anyway (StreamScreen), so a touch on the backdrop does nothing.
-                Color.black.opacity(0.85)
+                Palette.background.opacity(0.98)
                     .accessibilityHidden(true)
                 Group {
                     if let link = client.pendingLink {
@@ -183,7 +184,7 @@ struct PairingOverlay: View {
             Button(action: pairTyped) {
                 Text("Pair")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.black)
+                    .foregroundStyle(Palette.onAccent)
                     .frame(minWidth: 88, minHeight: 44)
                     .padding(.horizontal, 12)
                     .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Palette.accent.opacity(working ? 0.4 : 1)))

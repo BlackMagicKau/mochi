@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import Foundation
 import Network
 // In the app StreamProtocol is its own module; the message-reader check compiles this file together
@@ -36,7 +37,7 @@ final class MessageReader {
         /// The connection ended (EOF: the Mac closed it) or failed (the error), between messages or
         /// in the middle of one.
         case closed(NWError?)
-        /// A header announced more than a Sill host ever sends: nothing after it was read.
+        /// A header announced more than a Mochi host ever sends: nothing after it was read.
         case tooBig(StreamHeader)
     }
 
@@ -80,7 +81,7 @@ final class MessageReader {
                 return
             }
             onBytes(data.count)
-            // Nothing a Sill host sends is bigger than these (docs/remote-access-plan.md §3.7). A
+            // Nothing a Mochi host sends is bigger than these (docs/remote-access-plan.md §3.7). A
             // reader that waited for whatever a header announces could be held for ever, or read
             // an SSH banner as a 1.7 GB payload.
             let cap = header.kind == .frame ? StreamMessage.maxFramePayload : StreamMessage.maxOtherHostPayload

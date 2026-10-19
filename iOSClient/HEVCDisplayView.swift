@@ -1,3 +1,4 @@
+// Modified for Mochi: names and identities; original attribution in NOTICE.
 import UIKit
 import AVFoundation
 import Combine
@@ -48,7 +49,7 @@ final class HEVCDisplayView: UIView {
     private static let hudZ: CGFloat = 200
 
     #if DEBUG
-    /// The `-SillHUD 1` readout and its subscriptions to the client. nil unless that argument is set.
+    /// The `-MochiHUD 1` readout and its subscriptions to the client. nil unless that argument is set.
     private var hud: DiagnosticsHUDView?
     private var hudSubscriptions = Set<AnyCancellable>()
     #endif
@@ -99,7 +100,7 @@ final class HEVCDisplayView: UIView {
     }
 
     #if DEBUG
-    /// Shows the diagnostics readout fed by `client`, when launched with `-SillHUD 1`. Idempotent:
+    /// Shows the diagnostics readout fed by `client`, when launched with `-MochiHUD 1`. Idempotent:
     /// the view is shared across layouts, so every re-host calls this and only the first one counts.
     func attachDiagnostics(to client: StreamClient) {
         guard DiagnosticsHUDView.isEnabled, hud == nil else { return }
@@ -125,7 +126,7 @@ final class HEVCDisplayView: UIView {
     }
 
     #if DEBUG
-    /// The layout harness (`-SillPointer`): the frame size the sprite needs, as the host's parameter
+    /// The layout harness (`-MochiPointer`): the frame size the sprite needs, as the host's parameter
     /// sets would give it, for a mock that never streams; and a dim rectangle where that frame is
     /// drawn, so a photo shows what the sprite points into (the mock's picture is black).
     func debugFrameSize(_ size: CGSize) {
