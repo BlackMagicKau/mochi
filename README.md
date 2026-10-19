@@ -16,6 +16,24 @@ Mochi is a development project. Build and install it from source; this repositor
 
 ## A closer look
 
+### Xcode on your iPhone
+
+These screenshots show a real iPhone connected to the Mac by cable, streaming an Xcode window that displays Mochi's Swift source.
+
+<p align="center">
+  <img src="docs/images/iphone-xcode-live.png" width="100%" alt="Mochi on an iPhone in landscape, streaming live Swift source from Xcode with a compact toolbar below the window.">
+</p>
+
+Keep the controls collapsed to give Xcode more room. The toolbar keeps **Apps**, **Keyboard**, **Trackpad**, **Zoom**, and **More** within reach.
+
+<p align="center">
+  <img src="docs/images/iphone-xcode-trackpad.png" width="360" alt="The live Xcode stream on an iPhone in portrait, with Mochi’s matcha trackpad open for pointer control.">
+</p>
+
+Open **Trackpad** when you need pointer control. Drag to move the pointer, tap to click, or scroll with two fingers. Tap **Trackpad** again to return the space to the streamed window.
+
+### Connection and settings
+
 These are native app previews rendered with demo data. They show the connection screen and Mac controls, without live desktop content or personal device details.
 
 <table>
