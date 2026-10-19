@@ -294,15 +294,6 @@ An unsigned build cannot be installed on a physical device. See the [validation 
 - Mac distribution is not notarized, and the project has no configured App Store release or automatic update service.
 - Optional foldable-device support is disabled unless built with `MOCHI_FOLDABLE_SDK` and a supporting SDK.
 
-## Meet Mochi
-
-<table>
-  <tr>
-    <td width="160"><img src="design/MochiCharacter.png" width="144" alt="The selected A1 character: a soft matcha dumpling with a dark green cap and a small smile."></td>
-    <td><strong>A small companion for your Mac.</strong><br>The selected A1 character appears in the app icon, connection screen, and Mac settings, pairing, and status views. The interface uses cream surfaces, matcha accents, and dark tea-green text.<br><br><a href="design/README.md">Explore the design assets</a></td>
-  </tr>
-</table>
-
 ## Get help
 
 Use the [troubleshooting guide](docs/TROUBLESHOOTING.md) for setup and connection problems. For a reproducible bug, [open an issue](https://github.com/BlackMagicKau/mochi/issues) with the device models, OS versions, build revision, and reproduction steps. Remove pairing codes, tokens, addresses, and private window content from attachments.
